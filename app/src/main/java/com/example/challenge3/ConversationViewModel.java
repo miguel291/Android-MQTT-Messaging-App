@@ -1,4 +1,10 @@
 package com.example.challenge3;
 
-public class ConversationViewModel {
+import androidx.lifecycle.ViewModel;
+
+public class ConversationViewModel extends ViewModel {
+
+    public ConversationViewModel() {
+        // Initialize the ViewModel
+    }
 }

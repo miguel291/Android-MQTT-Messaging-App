@@ -5,4 +5,5 @@
     <string name="action_create_conv">New conversation</string>
     <string name="action_arduino_conf">Open Arduino configuration</string>
     <string name="action_logout">Logout</string>
+    <string name="arduino_conf_fragment_text">dddd</string>
 </resources>

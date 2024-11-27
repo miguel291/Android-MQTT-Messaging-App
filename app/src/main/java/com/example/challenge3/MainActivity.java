@@ -1,17 +1,15 @@
 package com.example.challenge3;
 
 import android.os.Bundle;
-import android.widget.Toolbar;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
-import androidx.appcompat.app.ActionBar;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
 
 public class MainActivity extends AppCompatActivity {
@@ -40,12 +38,8 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-    }
+        getSupportFragmentManager().beginTransaction().add(R.id.main, UsernameFragment.class, null).commit();
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_activity, menu); // Inflate the menu only once
-        return true;
     }
 
     @Override
@@ -61,13 +55,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     // Set login/register fragment as default
-    //getSupportFragmentManager().beginTransaction().add(R.id.main, LoginRegisterFragment.class, null).commit();
-
-
-
-
-
-
 
 
 }
