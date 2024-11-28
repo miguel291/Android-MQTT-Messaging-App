@@ -39,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
         getSupportFragmentManager().beginTransaction().add(R.id.main, UsernameFragment.class, null).commit();
+        //getSupportFragmentManager().beginTransaction().add(R.id.main, ConversationListFragment.class, null).commit();
 
     }
 
@@ -46,7 +47,7 @@ public class MainActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here.
         int id = item.getItemId();
-        if (id == R.id.action_add) {
+        if (id == R.id.action_settings) {
             // Handle the add action
             // e.g., finish(); or navigate to the home activity
             return true;

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Define your custom theme -->
-    <style name="AppTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">
-        <item name="windowActionBar">false</item>
+    <!-- Define your custom theme
+    <style name="AppTheme" parent="ThemeOverlay.AppCompat.Dark.ActionBar">-->
+    <style name="AppTheme" parent="Theme.AppCompat.Light.NoActionBar">
+    <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="colorPrimary">@android:color/white</item>
         <item name="colorOnPrimary">@android:color/black</item>
@@ -10,3 +11,4 @@
         <item name="android:textColorPrimary">@android:color/black</item>
     </style>
 </resources>
+
