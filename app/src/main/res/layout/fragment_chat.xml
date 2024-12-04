@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     tools:context=".ChatFragment">
 
-    <!-- Toolbar with proper constraints -->
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/toolbar"
         android:layout_width="match_parent"
@@ -20,6 +19,5 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Add other views here -->
 
 </androidx.constraintlayout.widget.ConstraintLayout>

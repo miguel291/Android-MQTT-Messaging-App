@@ -38,8 +38,8 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        getSupportFragmentManager().beginTransaction().add(R.id.main, UsernameFragment.class, null).commit();
-        //getSupportFragmentManager().beginTransaction().add(R.id.main, ConversationListFragment.class, null).commit();
+        //getSupportFragmentManager().beginTransaction().add(R.id.main, UsernameFragment.class, null).commit();
+        getSupportFragmentManager().beginTransaction().add(R.id.main, ConversationListFragment.class, null).commit();
 
     }
 
