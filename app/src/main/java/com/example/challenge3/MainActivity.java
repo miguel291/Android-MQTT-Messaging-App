@@ -1,5 +1,6 @@
 package com.example.challenge3;
 
+import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -11,26 +12,21 @@ import androidx.core.view.WindowInsetsCompat;
 import androidx.lifecycle.ViewModelProvider;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
 
 public class MainActivity extends AppCompatActivity {
 
     ConversationViewModel viewModel;
-    
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        getMenuInflater().inflate(R.menu.menu_activity, menu); // Inflate the menu only once
-        return true;
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        //EdgeToEdge.enable(this);
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
+
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -38,10 +34,18 @@ public class MainActivity extends AppCompatActivity {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
             return insets;
         });
-        //getSupportFragmentManager().beginTransaction().add(R.id.main, UsernameFragment.class, null).commit();
-        getSupportFragmentManager().beginTransaction().add(R.id.main, ConversationListFragment.class, null).commit();
 
+        // Check if it's the first time the app is launched
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        boolean isFirstTime = sharedPreferences.getBoolean("IS_FIRST_TIME", true);
+
+        if (isFirstTime) {
+            showUserForm();
+        } else {
+            showChatList();
+        }
     }
+
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
@@ -55,7 +59,35 @@ public class MainActivity extends AppCompatActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    // Set login/register fragment as default
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        getMenuInflater().inflate(R.menu.menu_activity, menu); // Inflate the menu only once
+        return true;
+    }
+
+    public void showUserForm(){
+        findViewById(R.id.toolbar).setVisibility(View.GONE);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, UsernameFragment.class, null)
+                .commit();
+    }
+
+    public void showChatList(){
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, ConversationListFragment.class, null)
+                .commit();
+    }
+
+    public void showArduinoConf(){
+        findViewById(R.id.toolbar).setVisibility(View.GONE);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, ArduinoConfFragment.class, null)
+                .commit();
+    }
 
 
 }
