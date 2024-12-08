@@ -43,6 +43,9 @@ public class ArduinoConfFragment extends Fragment {
         return view;
     }
 
+
+
+
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
@@ -56,13 +59,14 @@ public class ArduinoConfFragment extends Fragment {
 
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
-                int id = menuItem.getItemId();
-
-                if (id == R.id.action_back) {
-                    //Change fragment
-                    ((MainActivity) requireActivity()).showChatList();
+                if (menuItem.getItemId() == R.id.action_back) {
+                    MainActivity activity = (MainActivity) requireActivity();
+                    if (activity != null) {
+                        activity.showChatList();
+                    }
+                    return true;
                 }
-                return true;
+                return false;
             }
         }, getViewLifecycleOwner());
     }

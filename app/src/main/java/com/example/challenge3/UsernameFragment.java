@@ -20,6 +20,7 @@ public class UsernameFragment extends Fragment {
     private EditText editTextUsername;
     private Button loginBtn;
 
+
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
@@ -52,13 +53,22 @@ public class UsernameFragment extends Fragment {
     }
 
     private void saveUsername(String username) {
+        // Save username to SharedPreferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("USER_ID", username);
         editor.putBoolean("IS_FIRST_TIME", false);
         editor.apply();
+
+        // Update ViewModel with the logged-in user
+        // Update the ViewModel through MainActivity
+        if (requireActivity() instanceof MainActivity) {
+            MainActivity mainActivity = (MainActivity) requireActivity();
+            mainActivity.setLoggedInUser(username);
+        }
+
+        // Show a welcome message
         createToast("Welcome " + username);
     }
-
 
     /*
         Create a toast

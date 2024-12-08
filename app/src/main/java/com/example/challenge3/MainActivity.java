@@ -1,9 +1,7 @@
 
 package com.example.challenge3;
 
-import android.content.ContentValues;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
@@ -13,10 +11,14 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
+
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 
 import java.util.ArrayList;
 
@@ -26,11 +28,10 @@ public class MainActivity extends AppCompatActivity {
     DictionaryOpenHelper dbHelper;
     SQLiteDatabase database;
 
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         EdgeToEdge.enable(this); // Enable edge-to-edge display
         setContentView(R.layout.activity_main);
 
@@ -55,6 +56,13 @@ public class MainActivity extends AppCompatActivity {
         // Check if it's the first time the app is launched
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         boolean isFirstTime = sharedPreferences.getBoolean("IS_FIRST_TIME", true);
+
+        // Check if the user is already logged in
+        String userId = sharedPreferences.getString("USER_ID", null);
+        if (userId != null) {
+            setLoggedInUser(userId); // Automatically set the logged-in user
+            dbLoadingIntoObject(); // Load chats for the logged-in user
+        }
 
         if (isFirstTime) {
             // Show user form if the app is launched for the first time
@@ -97,6 +105,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showChatList(){
+        findViewById(R.id.toolbar).setVisibility(View.GONE);
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.main, ConversationListFragment.class, null)
@@ -112,7 +121,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void showChatFragment(Chat chat) {
-        findViewById(R.id.toolbar).setVisibility(View.VISIBLE); // Show toolbar or customize as needed
+        findViewById(R.id.toolbar).setVisibility(View.GONE); // Show toolbar or customize as needed
         getSupportFragmentManager()
                 .beginTransaction()
                 .replace(R.id.main, ChatFragment.newInstance(chat))
@@ -120,4 +129,52 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
+    public ConversationViewModel getViewModel() {
+        return viewModel;
+    }
+
+    public void dbLoadingIntoObject() {
+        User loggedInUser = viewModel.getLoggedInUser();
+        if (loggedInUser != null) {
+            try {
+                ArrayList<Chat> chatsFromDb = dbHelper.getChats(loggedInUser.getId());
+                viewModel.setChats(chatsFromDb);
+            } catch (Exception e) {
+                Toast.makeText(this, "Error loading chats: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+
+        }
+
+        // Initialize the database helper
+        DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(this);
+
+        // Insert fake data into the database and load it into LiveData
+        Chat chat = new Chat(1, new User("Sender123"), new User("Receiver1"));
+
+        // Verify the messages are loaded into LiveData
+        chat.getMessagesLiveData().observe(this, messages -> {
+            Log.d("MainActivity", "Loaded messages: " + messages.size());
+            for (Message message : messages) {
+                Log.d("MainActivity", "Message: " + message.getContent());
+            }
+        });
+    }
+
+
+    public void updateDb(){
+
+    }
+
+    public User getLoggedUser() {
+        return viewModel.getLoggedInUser();
+    }
+
+    public void setLoggedInUser(String userId) {
+        if (viewModel != null) {
+            User user = new User(userId);
+            viewModel.setLoggedInUser(user);
+            dbLoadingIntoObject(); // Load chats for the logged-in user
+        }
+    }
 }
+

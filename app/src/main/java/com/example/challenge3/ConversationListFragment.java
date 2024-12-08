@@ -10,6 +10,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -22,12 +24,11 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import java.util.ArrayList;
-import java.util.Objects;
 
 public class ConversationListFragment extends Fragment {
 
-    ArrayList<Chat> chats = new ArrayList<>();
     RecyclerView recyclerView;
+    ConversationViewModel viewModel;
 
     public ConversationListFragment() {
         // Required empty public constructor
@@ -35,6 +36,10 @@ public class ConversationListFragment extends Fragment {
 
     public static ConversationListFragment newInstance() {
         return new ConversationListFragment();
+    }
+
+    public void loadViewModel(){
+        viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
     }
 
     @Override
@@ -50,39 +55,28 @@ public class ConversationListFragment extends Fragment {
             activity.getSupportActionBar().setTitle("Chat List"); // Set toolbar title
         }
 
+        loadViewModel();
         return view;
+
     }
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-
-        /*FAKE DATA CREATION (TO REMOVE)*/
-        // Create two fake users (same senderId)
-        User sender = new User("Sender123"); // Same sender ID for both chats
-        User receiver1 = new User("Receiver1");
-        User receiver2 = new User("Receiver2");
-
-        // Create fake chat objects
-        Chat chat1 = new Chat(sender, receiver1);
-        chat1.addMessage(new Message("Hello Receiver1!", "2024-12-08 10:00:00"));
-        chat1.addMessage(new Message("How are you?", "2024-12-08 10:05:00"));
-
-        Chat chat2 = new Chat(sender, receiver2);
-        chat2.addMessage(new Message("Hi Receiver2!", "2024-12-08 11:00:00"));
-        chat2.addMessage(new Message("What's up?", "2024-12-08 11:05:00"));
-
-        // Add chats to the list
-        chats.add(chat1);
-        chats.add(chat2);
-
-
         // Set up the RecyclerView
         recyclerView = view.findViewById(R.id.chatList);
-        Adapter adapter = new Adapter(chats, this::openConversation, this::showDeleteDialog);
+        Adapter adapter = new Adapter(new ArrayList<>(), this::openConversation, this::showDeleteDialog);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        // Observe LiveData for chat updates
+        viewModel.getChats().observe(getViewLifecycleOwner(), chats -> {
+            if (chats != null) {
+                adapter.updateChats(chats); // Update adapter with new data
+            }
+        });
 
         // Menu setup
         requireActivity().addMenuProvider(new MenuProvider() {
@@ -96,16 +90,62 @@ public class ConversationListFragment extends Fragment {
                 int id = menuItem.getItemId();
 
                 if (id == R.id.arduinoConfigButton) {
-                    //createToast("Arduino Config button clicked");
-                    //Change fragment
                     ((MainActivity) requireActivity()).showArduinoConf();
                 } else if (id == R.id.action_add_chat) {
-                    //Create a new chat
-                    createToast("Add Chat button clicked");
+                        showUserListDialog();
                 }
                 return true;
             }
         }, getViewLifecycleOwner());
+    }
+
+
+
+
+    private void showUserListDialog() {
+        DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(requireContext());
+        //String loggedUserId = viewModel.getLoggedInUser().getId(); // Ottieni l'utente loggato
+
+        createToast("New chat button clicked!");
+
+        /*ArrayList<User> users = dbHelper.getAllUsersExcept(loggedUserId);
+
+        if (users.isEmpty()) {
+            createToast("No users available to start a chat.");
+            return;
+        }
+
+        // Converti gli utenti in un array di nomi
+        String[] userNames = new String[users.size()];
+        for (int i = 0; i < users.size(); i++) {
+            userNames[i] = users.get(i).getId();
+        }
+
+        // Mostra un AlertDialog con la lista degli utenti
+        new AlertDialog.Builder(requireContext())
+                .setTitle("Select a user")
+                .setItems(userNames, (dialog, which) -> {
+                    User selectedUser = users.get(which);
+                    startNewChat(selectedUser);
+                })
+                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
+                .show();*/
+    }
+    private void startNewChat(User selectedUser) {
+        //DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(requireContext());
+        //User loggedUser = viewModel.getLoggedInUser();
+
+        createToast("New chat button clicked!");
+        /*New chat creation
+        Chat newChat = dbHelper.createNewChat(loggedUser, selectedUser, "Hello " + selectedUser.getId() + "!");
+
+        // Aggiungi la chat alla lista e aggiorna la LiveData
+        ArrayList<Chat> currentChats = new ArrayList<>(viewModel.getChats().getValue());
+        currentChats.add(newChat);
+        viewModel.setChats(currentChats);
+
+        createToast("Chat started with " + selectedUser.getId());*/
+
     }
 
 
@@ -125,25 +165,19 @@ public class ConversationListFragment extends Fragment {
     }
 
 
-
-
     private void showDeleteDialog(int position) {
         new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Chat")
                 .setMessage("Are you sure you want to delete this chat?")
                 .setPositiveButton("Yes", (dialog, which) -> {
-                    // Remove the chat and notify the adapter
-                    chats.remove(position);
-                    Objects.requireNonNull(recyclerView.getAdapter()).notifyItemRemoved(position);
+                    ArrayList<Chat> currentChats = new ArrayList<>(viewModel.getChats().getValue());
+                    currentChats.remove(position); // Remove the chat
+                    viewModel.setChats(currentChats); // Update LiveData
                     createToast("Chat deleted.");
-
-                    // Dismiss the dialog (optional, as it will dismiss automatically)
                     dialog.dismiss();
                 })
-                .setNegativeButton("No", (dialog, which) -> {
-                    // Just dismiss the dialog when "No" is clicked
-                    dialog.dismiss();
-                })
+                .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
                 .show();
     }
+
 }

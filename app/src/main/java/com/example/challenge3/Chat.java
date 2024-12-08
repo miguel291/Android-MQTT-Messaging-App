@@ -1,38 +1,58 @@
 package com.example.challenge3;
 
+import androidx.lifecycle.MutableLiveData;
+
 import java.io.Serializable;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.List;
 
 public class Chat implements Serializable {
-    private User user1;
-    private User user2;
-    private ArrayList<Message> messages;
+    private int id;
+    private User loggedUser;
+    private User receiver;
+    private MutableLiveData<ArrayList<Message>> messages;
 
-    public Chat(User user1, User user2) {
-        this.user1 = user1;
-        this.user2 = user2;
-        this.messages = new ArrayList<>();
+    // Constructor
+    public Chat(int id, User loggedUser, User receiver) {
+        this.id = id;
+        this.loggedUser = loggedUser;
+        this.receiver = receiver;
+        this.messages = new MutableLiveData<>(new ArrayList<>()); // Initialize with an empty list
     }
 
-    public void addMessage(Message message) {
-        messages.add(message);
+    // Getters and Setters
+    public int getId() {
+        return id;
     }
 
-    public ArrayList<Message> getMessages() {
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public MutableLiveData<ArrayList<Message>> getMessagesLiveData() {
         return messages;
     }
 
-    public User getUser1() {
-        return user1;
-    }
-
-    public User getUser2() {
-        return user2;
-    }
-
     public void setMessages(ArrayList<Message> messages) {
-        this.messages = messages;
+        this.messages.setValue(messages);
     }
+
+    public User getLoggedUser() {
+        return loggedUser;
+    }
+
+    public User getReceiver() {
+        return receiver;
+    }
+
+    // Add a message to the list and notify observers
+    public void addMessage(Message message) {
+        ArrayList<Message> currentMessages = this.messages.getValue();
+        if (currentMessages == null) {
+            currentMessages = new ArrayList<>();
+        }
+        currentMessages.add(message);
+        this.messages.setValue(currentMessages); // Notify observers
+    }
+
+
 }
