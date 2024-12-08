@@ -124,7 +124,7 @@ public class MainActivity extends AppCompatActivity {
                     String message = cursor.getString(messageIndex);
                     String timestamp = cursor.getString(timestampIndex);
 
-                    chats.add(new Chat(new User(senderId), new User(receiverId), message, timestamp));
+                    chats.add(new Chat(new User(senderId), new User(receiverId)));
                 } while (cursor.moveToNext());
             }
         } catch (Exception e) {

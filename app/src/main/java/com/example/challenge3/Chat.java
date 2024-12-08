@@ -1,49 +1,31 @@
 package com.example.challenge3;
 
+import java.util.ArrayList;
+
 public class Chat {
-    private User sender;
-    private User receiver;
-    private String message;
-    private String timestamp;
-    //private boolean isRead;
+    private User user1;
+    private User user2;
+    private ArrayList<Message> messages;
 
-
-    public Chat(User sender, User receiver, String message, String timestamp) {
-        this.sender = sender;
-        this.receiver = receiver;
-        this.message = message;
-        this.timestamp = timestamp;
+    public Chat(User user1, User user2) {
+        this.user1 = user1;
+        this.user2 = user2;
+        this.messages = new ArrayList<>();
     }
 
-    public User getSender() {
-        return sender;
+    public void addMessage(Message message) {
+        messages.add(message);
     }
 
-    public void setSender(User sender) {
-        this.sender = sender;
+    public ArrayList<Message> getMessages() {
+        return messages;
     }
 
-    public User getReceiver() {
-        return receiver;
+    public User getUser1() {
+        return user1;
     }
 
-    public void setReceiver(User receiver) {
-        this.receiver = receiver;
-    }
-
-    public String getMessage() {
-        return message;
-    }
-
-    public void setMessage(String message) {
-        this.message = message;
-    }
-
-    public String getTimestamp() {
-        return timestamp;
-    }
-
-    public void setTimestamp(String timestamp) {
-        this.timestamp = timestamp;
+    public User getUser2() {
+        return user2;
     }
 }

@@ -9,6 +9,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -18,7 +20,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
 
+import java.util.ArrayList;
+
 public class ConversationListFragment extends Fragment {
+
+    ArrayList<Chat> chats = new ArrayList<>();
 
     public ConversationListFragment() {
         // Required empty public constructor
@@ -48,6 +54,30 @@ public class ConversationListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Create two fake users (same senderId)
+        User sender = new User("Sender123"); // Same sender ID for both chats
+        User receiver1 = new User("Receiver1");
+        User receiver2 = new User("Receiver2");
+
+        // Create fake chat objects
+        Chat chat1 = new Chat(sender, receiver1);
+        chat1.addMessage(new Message("Hello Receiver1!", "2024-12-08 10:00:00"));
+        chat1.addMessage(new Message("How are you?", "2024-12-08 10:05:00"));
+
+        Chat chat2 = new Chat(sender, receiver2);
+        chat2.addMessage(new Message("Hi Receiver2!", "2024-12-08 11:00:00"));
+        chat2.addMessage(new Message("What's up?", "2024-12-08 11:05:00"));
+
+        // Add chats to the list
+        chats.add(chat1);
+        chats.add(chat2);
+
+
+        // Set up the RecyclerView
+        RecyclerView recyclerView = view.findViewById(R.id.chatList);
+        Adapter adapter = new Adapter(chats);
+        recyclerView.setAdapter(adapter);
+        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
         // Menu setup
         requireActivity().addMenuProvider(new MenuProvider() {
             @Override
@@ -71,6 +101,8 @@ public class ConversationListFragment extends Fragment {
             }
         }, getViewLifecycleOwner());
     }
+
+
 
     private void createToast(String message) {
         Context context = getContext();
