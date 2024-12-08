@@ -8,6 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -55,5 +56,18 @@ public class UsernameFragment extends Fragment {
         editor.putString("USER_ID", username);
         editor.putBoolean("IS_FIRST_TIME", false);
         editor.apply();
+        createToast("Welcome " + username);
     }
+
+
+    /*
+        Create a toast
+     */
+    private void createToast(CharSequence text){
+        Context context = getContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
+    }
+
 }

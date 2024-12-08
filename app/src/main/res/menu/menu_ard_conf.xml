@@ -2,8 +2,15 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
-    <!-- Settings, should always be in the overflow -->
-    <item android:id="@+id/action_settings"
+    <!-- Back button -->
+    <item
+        android:id="@+id/action_back"
+        android:title="Back"
+        android:icon="@drawable/ic_arrow_back"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_settings"
         android:title="@string/action_settings"
         app:showAsAction="never" />
 </menu>

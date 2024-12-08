@@ -59,11 +59,9 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here.
         int id = item.getItemId();
         if (id == R.id.action_settings) {
-            // Handle the add action
-            // e.g., finish(); or navigate to the home activity
+            // Handle the settings action
             return true;
         }
         return super.onOptionsItemSelected(item);

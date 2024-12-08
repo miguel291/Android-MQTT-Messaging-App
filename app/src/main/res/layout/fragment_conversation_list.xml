@@ -16,28 +16,6 @@
         app:titleTextColor="@android:color/white"
         app:layout_constraintTop_toTopOf="parent"
         android:elevation="4dp">
-        
-        <ImageButton
-            android:id="@+id/arduinoConfigButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_arduino"
-            android:contentDescription="Arduino Configuration"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:layout_gravity="end"
-            android:layout_marginEnd="8dp"
-            android:layout_marginStart="8dp"/>
-
-        <ImageButton
-            android:id="@+id/newConversationButton"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:src="@drawable/ic_action_add"
-            android:contentDescription="Create New Conversation"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:tint="@android:color/white"
-            android:layout_gravity="end" />
-
     </androidx.appcompat.widget.Toolbar>
 
     <androidx.recyclerview.widget.RecyclerView
