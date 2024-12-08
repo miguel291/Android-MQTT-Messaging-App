@@ -3,6 +3,7 @@ package com.example.challenge3;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -17,7 +18,7 @@ import androidx.fragment.app.Fragment;
 public class UsernameFragment extends Fragment {
 
     private SharedPreferences sharedPreferences;
-    private EditText editTextUsername;
+    private EditText editTextId;
     private Button loginBtn;
 
 
@@ -27,21 +28,25 @@ public class UsernameFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_username, container, false);
 
         // Username input and save button
-        editTextUsername = view.findViewById(R.id.editTextId);
+        editTextId = view.findViewById(R.id.editTextId);
         loginBtn = view.findViewById(R.id.btnLogin);
         sharedPreferences = requireContext().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
 
         // Set the button's click listener
         loginBtn.setOnClickListener(v -> {
-            String username = editTextUsername.getText().toString().trim();
-            if (isAlphanumeric(username)) {
-                saveUsername(username);
+            String id = editTextId.getText().toString().trim(); // Get the string value
+
+
+            if (isAlphanumeric(id)) {
+                saveUser(id);
 
                 // Directly call MainActivity's method
                 MainActivity activity = (MainActivity) requireActivity();
                 activity.showChatList(); // Switch fragment
+                createToast("Welcome " + id);
+                Log.i("USER_ID", id);
             } else {
-                editTextUsername.setError("Username must be an alphanumeric code");
+                editTextId.setError("Username must be an alphanumeric code");
             }
         });
 
@@ -52,22 +57,12 @@ public class UsernameFragment extends Fragment {
         return username.matches("^[a-zA-Z0-9]+$");
     }
 
-    private void saveUsername(String username) {
-        // Save username to SharedPreferences
+    private void saveUser(String userId) {
+        // Save user to SharedPreferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("USER_ID", username);
+        editor.putString("USER_ID", userId);
         editor.putBoolean("IS_FIRST_TIME", false);
         editor.apply();
-
-        // Update ViewModel with the logged-in user
-        // Update the ViewModel through MainActivity
-        if (requireActivity() instanceof MainActivity) {
-            MainActivity mainActivity = (MainActivity) requireActivity();
-            mainActivity.setLoggedInUser(username);
-        }
-
-        // Show a welcome message
-        createToast("Welcome " + username);
     }
 
     /*

@@ -1,12 +1,15 @@
 package com.example.challenge3;
 
 public class Message {
-    private String content;
-    private String timestamp;
+    private int chatId;
+    private int messageId;
     private User sender;
     private User receiver;
+    private String content;
+    private String timestamp;
 
-    public Message(String content, String timestamp) {
+
+    public Message(int chatId, int messageId, User sender, User receiver, String content, String timestamp) {
         this.content = content;
         this.timestamp = timestamp;
     }
@@ -41,5 +44,21 @@ public class Message {
 
     public void setReceiver(User receiver) {
         this.receiver = receiver;
+    }
+
+    public int getChatId() {
+        return chatId;
+    }
+
+    public void setChatId(int chatId) {
+        this.chatId = chatId;
+    }
+
+    public int getMessageId() {
+        return messageId;
+    }
+
+    public void setMessageId(int messageId) {
+        this.messageId = messageId;
     }
 }

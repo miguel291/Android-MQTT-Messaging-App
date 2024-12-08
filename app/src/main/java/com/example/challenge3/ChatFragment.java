@@ -98,6 +98,7 @@ public class ChatFragment extends Fragment {
      */
     private void sendMessage() {
         String messageText = messageInput.getText().toString().trim();
+        int messageId = chat.getChatSize() + 1; // Generate a unique message ID
 
         if (messageText.isEmpty()) {
             Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT).show();
@@ -105,9 +106,7 @@ public class ChatFragment extends Fragment {
         }
 
         // Create a new Message object
-        Message newMessage = new Message(messageText, "2024-12-08 12:00:00"); // Replace with current timestamp dynamically
-        newMessage.setSender(chat.getLoggedUser());
-        newMessage.setReceiver(chat.getReceiver());
+        Message newMessage = new Message(chat.getId(), messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, "2024-12-08 12:00:00"); // Replace with current timestamp dynamically
 
         // Add the message to the chat's LiveData
         chat.addMessage(newMessage);

@@ -9,20 +9,22 @@ import java.util.ArrayList;
 public class ConversationViewModel extends ViewModel {
 
     private MutableLiveData<ArrayList<Chat>> chats = new MutableLiveData<>(new ArrayList<>());
-    private User loggedInUser;
-
+   // private MutableLiveData<ArrayList<User>> users = new MutableLiveData<>(new ArrayList<>());
+    // In your ViewModel, set the logged-in user when the user logs in
+    private MutableLiveData<User> loggedInUser = new MutableLiveData<>();
 
     public ConversationViewModel() {
        //Initialize the viewmodel
     }
 
-    public User getLoggedInUser() {
-        return loggedInUser;
+    public void setLoggedInUser(User user) {
+        loggedInUser.setValue(user);
     }
 
-    public void setLoggedInUser(User user) {
-        loggedInUser = user;
+    public User getLoggedInUser() {
+        return loggedInUser.getValue();
     }
+
 
     public LiveData<ArrayList<Chat>> getChats() {
         return chats;
@@ -31,5 +33,4 @@ public class ConversationViewModel extends ViewModel {
     public void setChats(ArrayList<Chat> newChats) {
         chats.setValue(newChats);
     }
-
 }

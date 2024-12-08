@@ -11,12 +11,10 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -38,13 +36,12 @@ public class MainActivity extends AppCompatActivity {
         // Initialize database helper and writable database
         dbHelper = new DictionaryOpenHelper(this);
         database = dbHelper.getWritableDatabase();
+        // Initialize ViewModel
+        viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
 
         // Set up the toolbar
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
-
-        // Initialize ViewModel
-        viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
 
         // Apply window insets for edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
@@ -59,8 +56,8 @@ public class MainActivity extends AppCompatActivity {
 
         // Check if the user is already logged in
         String userId = sharedPreferences.getString("USER_ID", null);
+
         if (userId != null) {
-            setLoggedInUser(userId); // Automatically set the logged-in user
             dbLoadingIntoObject(); // Load chats for the logged-in user
         }
 
@@ -77,18 +74,6 @@ public class MainActivity extends AppCompatActivity {
             showChatList();
         }
     }
-
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            // Handle the settings action
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -135,6 +120,7 @@ public class MainActivity extends AppCompatActivity {
 
     public void dbLoadingIntoObject() {
         User loggedInUser = viewModel.getLoggedInUser();
+
         if (loggedInUser != null) {
             try {
                 ArrayList<Chat> chatsFromDb = dbHelper.getChats(loggedInUser.getId());
@@ -149,7 +135,7 @@ public class MainActivity extends AppCompatActivity {
         DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(this);
 
         // Insert fake data into the database and load it into LiveData
-        Chat chat = new Chat(1, new User("Sender123"), new User("Receiver1"));
+        Chat chat = new Chat(1, new User("Sender1"), new User("Sender2"));
 
         // Verify the messages are loaded into LiveData
         chat.getMessagesLiveData().observe(this, messages -> {
@@ -169,11 +155,17 @@ public class MainActivity extends AppCompatActivity {
         return viewModel.getLoggedInUser();
     }
 
-    public void setLoggedInUser(String userId) {
+    public void setLoggedInUser() {
         if (viewModel != null) {
-            User user = new User(userId);
-            viewModel.setLoggedInUser(user);
-            dbLoadingIntoObject(); // Load chats for the logged-in user
+            SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+            String userId = sharedPreferences.getString("USER_ID", null);
+            if (userId != null) {
+                /*User loggedInUser = dbHelper.getUserById(userId);
+                viewModel.setLoggedInUser(loggedInUser);*/
+            }
+        }
+        else{
+            Log.i("ERROR", "Logged in user not found, DB loading failed");
         }
     }
 }

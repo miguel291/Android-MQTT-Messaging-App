@@ -10,11 +10,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.MenuProvider;
 import androidx.fragment.app.Fragment;
-import androidx.lifecycle.LiveData;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -57,7 +57,6 @@ public class ConversationListFragment extends Fragment {
 
         loadViewModel();
         return view;
-
     }
 
 
@@ -99,14 +98,16 @@ public class ConversationListFragment extends Fragment {
         }, getViewLifecycleOwner());
     }
 
-
-
-
     private void showUserListDialog() {
-        DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(requireContext());
-        //String loggedUserId = viewModel.getLoggedInUser().getId(); // Ottieni l'utente loggato
 
-        createToast("New chat button clicked!");
+        Log.d("Debug", "ViewModel: " + viewModel);
+        Log.d("Debug", "LoggedInUser: " + (viewModel != null ? viewModel.getLoggedInUser() : "null"));
+        Log.d("Debug", "User ID: " + (viewModel.getLoggedInUser() != null ? viewModel.getLoggedInUser().getId() : "null"));
+
+        DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(requireContext());
+        /*String loggedUserId = viewModel.getLoggedInUser().getId(); // get the logged user
+
+        createToast("Logged User" + loggedUserId);*/
 
         /*ArrayList<User> users = dbHelper.getAllUsersExcept(loggedUserId);
 
@@ -131,6 +132,10 @@ public class ConversationListFragment extends Fragment {
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();*/
     }
+
+
+
+
     private void startNewChat(User selectedUser) {
         //DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(requireContext());
         //User loggedUser = viewModel.getLoggedInUser();

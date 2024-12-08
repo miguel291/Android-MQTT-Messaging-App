@@ -3,11 +3,11 @@ package com.example.challenge3;
 import java.util.ArrayList;
 
 public class User {
-    String Id;
+    String id;
     ArrayList<Chat> ChatList;
 
     public User(String id) {
-        this.Id = id;
+        this.id = id;
         this.ChatList = new ArrayList<>();
     }
 
@@ -20,11 +20,14 @@ public class User {
     }
 
     public String getId() {
-        return Id;
+        return id;
     }
 
     public void setId(String id) {
-        this.Id = id;
+        this.id = id;
     }
+
+
+
 
 }

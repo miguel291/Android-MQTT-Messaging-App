@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class Chat implements Serializable {
     private int id;
-    private User loggedUser;
+    private User loggedUser; //it's the sender
     private User receiver;
     private MutableLiveData<ArrayList<Message>> messages;
 
@@ -44,15 +44,20 @@ public class Chat implements Serializable {
         return receiver;
     }
 
-    // Add a message to the list and notify observers
     public void addMessage(Message message) {
         ArrayList<Message> currentMessages = this.messages.getValue();
-        if (currentMessages == null) {
-            currentMessages = new ArrayList<>();
+        if (currentMessages != null) {
+            currentMessages.add(message);
         }
-        currentMessages.add(message);
-        this.messages.setValue(currentMessages); // Notify observers
     }
 
+    public boolean isMessageFromSender(Message message) {
+        return message.getSender().getId() == (loggedUser.getId());
+    }
+
+    public int getChatSize() {
+        ArrayList<Message> currentMessages = messages.getValue(); // Retrieve the current list
+        return currentMessages != null ? currentMessages.size() : 0; // Return size or 0 if the list is null
+    }
 
 }

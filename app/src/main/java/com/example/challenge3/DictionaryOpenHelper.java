@@ -5,18 +5,17 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
-
-import androidx.lifecycle.LiveData;
-
 import java.util.ArrayList;
 
+
 public class DictionaryOpenHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 2; // Incrementa la versione per aggiornare il DB
+    public static final int DATABASE_VERSION = 3; // Increment version for the updated schema
     public static final String DATABASE_NAME = "chatApp.db";
 
-    // Tabelle
+    // Tables and Columns
     public static final String TABLE_CHAT = "chat";
-    public static final String COLUMN_CHAT_ID = "chat_id"; // Nome più esplicito
+    public static final String COLUMN_CHAT_ID = "chat_id";
+    public static final String COLUMN_MESSAGE_ID = "message_id";
     public static final String COLUMN_SENDER_ID = "sender_id";
     public static final String COLUMN_RECEIVER_ID = "receiver_id";
     public static final String COLUMN_MESSAGE = "message";
@@ -24,7 +23,8 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
 
     private static final String TABLE_CHAT_CREATE =
             "CREATE TABLE " + TABLE_CHAT + " (" +
-                    COLUMN_CHAT_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_MESSAGE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                    COLUMN_CHAT_ID + " INTEGER NOT NULL, " +
                     COLUMN_SENDER_ID + " TEXT NOT NULL, " +
                     COLUMN_RECEIVER_ID + " TEXT NOT NULL, " +
                     COLUMN_MESSAGE + " TEXT NOT NULL, " +
@@ -45,11 +45,12 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
         onCreate(db);
     }
 
-    // Inserisci un messaggio
-    public long insertMessage(int chatId, String senderId, String receiverId, String message, String timestamp) {
+    // Insert a message into the database
+    public long insertMessage(int chatId, int messageId, String senderId, String receiverId, String message, String timestamp) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
         values.put(COLUMN_CHAT_ID, chatId);
+        values.put(COLUMN_MESSAGE_ID, messageId);
         values.put(COLUMN_SENDER_ID, senderId);
         values.put(COLUMN_RECEIVER_ID, receiverId);
         values.put(COLUMN_MESSAGE, message);
@@ -57,7 +58,7 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_CHAT, null, values);
     }
 
-    // Recupera i messaggi per una chat
+    // Retrieve messages for a specific chat
     public ArrayList<Message> getMessages(int chatId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_CHAT + " WHERE " + COLUMN_CHAT_ID + " = ?";
@@ -66,14 +67,14 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
 
         if (cursor.moveToFirst()) {
             do {
+                int messageId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MESSAGE_ID));
                 String content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_MESSAGE));
                 String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIMESTAMP));
                 String senderId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_SENDER_ID));
                 String receiverId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_RECEIVER_ID));
 
-                Message message = new Message(content, timestamp);
-                message.setSender(new User(senderId));
-                message.setReceiver(new User(receiverId));
+                Message message = new Message(messageId, chatId, new User(senderId), new User(receiverId), content, timestamp);
+
                 messages.add(message);
             } while (cursor.moveToNext());
         }
@@ -81,26 +82,23 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
         return messages;
     }
 
+    // Create a new chat with an initial message
     public Chat createNewChat(User sender, User receiver, String initialMessage) {
         SQLiteDatabase db = this.getWritableDatabase();
         ContentValues values = new ContentValues();
-        values.put("sender_id", sender.getId());
-        values.put("receiver_id", receiver.getId());
-        values.put("message", initialMessage);
-        values.put("timestamp", "2024-12-08 12:00:00");
-
-        long chatId = db.insert("chat", null, values);
+        int chatId = (int) db.insert(TABLE_CHAT, null, values);
         if (chatId == -1) {
             throw new RuntimeException("Failed to create new chat.");
         }
 
-        Chat newChat = new Chat((int) chatId, sender, receiver);
-        newChat.addMessage(new Message(initialMessage, "2024-12-08 12:00:00"));
+        long messageId = insertMessage(chatId, 0, sender.getId(), receiver.getId(), initialMessage, "2024-12-08 12:00:00");
+
+        Chat newChat = new Chat(chatId, sender, receiver);
+        newChat.addMessage(new Message((int) messageId, chatId, sender, receiver, initialMessage, "2024-12-08 12:00:00"));
         return newChat;
     }
 
-
-    // Recupera tutte le chat per un utente
+    // Retrieve all chats for a specific user
     public ArrayList<Chat> getChats(String userId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT DISTINCT " + COLUMN_CHAT_ID + ", " + COLUMN_SENDER_ID + ", " + COLUMN_RECEIVER_ID +
@@ -122,7 +120,7 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
         return chats;
     }
 
-    // Recupera tutti gli utenti tranne quello loggato
+    // Retrieve all users except the logged-in user
     public ArrayList<User> getAllUsersExcept(String loggedUserId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM users WHERE user_id != ?";
@@ -132,12 +130,10 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
         if (cursor.moveToFirst()) {
             do {
                 String userId = cursor.getString(cursor.getColumnIndexOrThrow("user_id"));
-                String userName = cursor.getString(cursor.getColumnIndexOrThrow("user_name"));
                 users.add(new User(userId));
             } while (cursor.moveToNext());
         }
         cursor.close();
         return users;
     }
-
 }
