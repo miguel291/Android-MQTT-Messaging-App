@@ -1,3 +1,4 @@
+
 package com.example.challenge3;
 
 import android.content.ContentValues;
@@ -25,20 +26,26 @@ public class MainActivity extends AppCompatActivity {
     DictionaryOpenHelper dbHelper;
     SQLiteDatabase database;
 
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
+        EdgeToEdge.enable(this); // Enable edge-to-edge display
         setContentView(R.layout.activity_main);
 
+        // Initialize database helper and writable database
         dbHelper = new DictionaryOpenHelper(this);
         database = dbHelper.getWritableDatabase();
 
+        // Set up the toolbar
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
 
+        // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
 
+        // Apply window insets for edge-to-edge display
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main), (v, insets) -> {
             Insets systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars());
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom);
@@ -50,8 +57,15 @@ public class MainActivity extends AppCompatActivity {
         boolean isFirstTime = sharedPreferences.getBoolean("IS_FIRST_TIME", true);
 
         if (isFirstTime) {
+            // Show user form if the app is launched for the first time
             showUserForm();
+
+            // Update shared preferences to indicate the app is no longer in the first launch
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+            editor.putBoolean("IS_FIRST_TIME", false);
+            editor.apply();
         } else {
+            // Show chat list if it's not the first launch
             showChatList();
         }
     }
@@ -97,46 +111,13 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
-    public void insertChat(String senderId, String receiverId, String message, String timestamp) {
-        ContentValues contentValues = new ContentValues();
-        contentValues.put(DictionaryOpenHelper.COLUMN_SENDER_ID, senderId);
-        contentValues.put(DictionaryOpenHelper.COLUMN_RECEIVER_ID, receiverId);
-        contentValues.put(DictionaryOpenHelper.COLUMN_MESSAGE, message);
-        contentValues.put(DictionaryOpenHelper.COLUMN_TIMESTAMP, timestamp);
-        database.insert(DictionaryOpenHelper.TABLE_CHAT, null, contentValues);
+    public void showChatFragment(Chat chat) {
+        findViewById(R.id.toolbar).setVisibility(View.VISIBLE); // Show toolbar or customize as needed
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.main, ChatFragment.newInstance(chat))
+                .addToBackStack(null) // Add to back stack if back navigation is needed
+                .commit();
     }
-
-    public ArrayList<Chat> getAllChats() {
-        ArrayList<Chat> chats = new ArrayList<>();
-        Cursor cursor = null;
-        try {
-            cursor = database.rawQuery("SELECT * FROM " + DictionaryOpenHelper.TABLE_CHAT, null);
-            if (cursor != null && cursor.moveToFirst()) {
-                do {
-                    // Use getColumnIndexOrThrow to ensure the column exists
-                    int senderIdIndex = cursor.getColumnIndexOrThrow(DictionaryOpenHelper.COLUMN_SENDER_ID);
-                    int receiverIdIndex = cursor.getColumnIndexOrThrow(DictionaryOpenHelper.COLUMN_RECEIVER_ID);
-                    int messageIndex = cursor.getColumnIndexOrThrow(DictionaryOpenHelper.COLUMN_MESSAGE);
-                    int timestampIndex = cursor.getColumnIndexOrThrow(DictionaryOpenHelper.COLUMN_TIMESTAMP);
-
-                    String senderId = cursor.getString(senderIdIndex);
-                    String receiverId = cursor.getString(receiverIdIndex);
-                    String message = cursor.getString(messageIndex);
-                    String timestamp = cursor.getString(timestampIndex);
-
-                    chats.add(new Chat(new User(senderId), new User(receiverId)));
-                } while (cursor.moveToNext());
-            }
-        } catch (Exception e) {
-            e.printStackTrace(); // Log exception
-        } finally {
-            if (cursor != null) {
-                cursor.close(); // Ensure the cursor is closed
-            }
-        }
-        return chats;
-    }
-
-
 
 }

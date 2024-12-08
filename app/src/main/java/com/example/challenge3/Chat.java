@@ -1,8 +1,11 @@
 package com.example.challenge3;
 
+import java.io.Serializable;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.List;
 
-public class Chat {
+public class Chat implements Serializable {
     private User user1;
     private User user2;
     private ArrayList<Message> messages;
@@ -27,5 +30,9 @@ public class Chat {
 
     public User getUser2() {
         return user2;
+    }
+
+    public void setMessages(ArrayList<Message> messages) {
+        this.messages = messages;
     }
 }
