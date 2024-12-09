@@ -1,6 +1,7 @@
 
 package com.example.challenge3;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -50,28 +51,19 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Check if it's the first time the app is launched
+        // Check if the user is already logged in, if true gets its id
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-        boolean isFirstTime = sharedPreferences.getBoolean("IS_FIRST_TIME", true);
-
-        // Check if the user is already logged in
         String userId = sharedPreferences.getString("USER_ID", null);
 
         if (userId != null) {
             dbLoadingIntoObject(); // Load chats for the logged-in user
-        }
+            createToast("Welcome " + userId);
 
-        if (isFirstTime) {
-            // Show user form if the app is launched for the first time
-            showUserForm();
-
-            // Update shared preferences to indicate the app is no longer in the first launch
-            SharedPreferences.Editor editor = sharedPreferences.edit();
-            editor.putBoolean("IS_FIRST_TIME", false);
-            editor.apply();
-        } else {
             // Show chat list if it's not the first launch
             showChatList();
+        } else{
+            // Show user form if the app is launched for the first time
+            showUserForm();
         }
     }
 
@@ -81,6 +73,9 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
+    /*
+        User login page
+     */
     public void showUserForm(){
         findViewById(R.id.toolbar).setVisibility(View.GONE);
         getSupportFragmentManager()
@@ -167,6 +162,13 @@ public class MainActivity extends AppCompatActivity {
         else{
             Log.i("ERROR", "Logged in user not found, DB loading failed");
         }
+    }
+
+    private void createToast(CharSequence text){
+        Context context = this.getBaseContext();
+        int duration = Toast.LENGTH_SHORT;
+        Toast toast = Toast.makeText(context, text, duration);
+        toast.show();
     }
 }
 
