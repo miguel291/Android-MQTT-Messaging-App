@@ -13,13 +13,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 
 public class UsernameFragment extends Fragment {
 
     private SharedPreferences sharedPreferences;
     private EditText editTextId;
-    private Button loginBtn;
 
 
     @Nullable
@@ -27,16 +28,24 @@ public class UsernameFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_username, container, false);
 
+        Toolbar toolbar = view.findViewById(R.id.toolbarUsername);
+        AppCompatActivity activityCompat = (AppCompatActivity) getActivity();
+        if (activityCompat != null) {
+            activityCompat.setSupportActionBar(toolbar);
+            activityCompat.getSupportActionBar().setTitle("MChat"); // Set toolbar title
+        }
+
+
         // Username input and save button
         editTextId = view.findViewById(R.id.editTextId);
-        loginBtn = view.findViewById(R.id.btnLogin);
+        Button loginBtn = view.findViewById(R.id.btnLogin);
+
+        // Get app preferences
         sharedPreferences = requireContext().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
 
         // Set the button's click listener
         loginBtn.setOnClickListener(v -> {
             String id = editTextId.getText().toString().trim(); // Get the string value
-
-
             if (isAlphanumeric(id)) {
                 saveUser(id);
 
@@ -44,7 +53,6 @@ public class UsernameFragment extends Fragment {
                 MainActivity activity = (MainActivity) requireActivity();
                 activity.showChatList(); // Switch fragment
                 createToast("Welcome " + id);
-                Log.i("USER_ID", id);
             } else {
                 editTextId.setError("Username must be an alphanumeric code");
             }
@@ -53,15 +61,19 @@ public class UsernameFragment extends Fragment {
         return view;
     }
 
+    /*
+        Check if is Alphanumeric ID
+     */
     private boolean isAlphanumeric(String username) {
         return username.matches("^[a-zA-Z0-9]+$");
     }
 
+    /*
+        Save user to SharedPreferences
+     */
     private void saveUser(String userId) {
-        // Save user to SharedPreferences
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("USER_ID", userId);
-        editor.putBoolean("IS_FIRST_TIME", false);
         editor.apply();
     }
 

@@ -55,11 +55,11 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String userId = sharedPreferences.getString("USER_ID", null);
 
+        // if there is already a user id in the preferences
         if (userId != null) {
             dbLoadingIntoObject(); // Load chats for the logged-in user
             createToast("Welcome " + userId);
 
-            // Show chat list if it's not the first launch
             showChatList();
         } else{
             // Show user form if the app is launched for the first time
@@ -84,6 +84,9 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
+    /*
+        Chat list page
+    */
     public void showChatList(){
         findViewById(R.id.toolbar).setVisibility(View.GONE);
         getSupportFragmentManager()
@@ -92,6 +95,9 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
+    /*
+        Arduino Configuration page
+    */
     public void showArduinoConf(){
         findViewById(R.id.toolbar).setVisibility(View.GONE);
         getSupportFragmentManager()
@@ -100,6 +106,9 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
+    /*
+        Chat page
+    */
     public void showChatFragment(Chat chat) {
         findViewById(R.id.toolbar).setVisibility(View.GONE); // Show toolbar or customize as needed
         getSupportFragmentManager()
