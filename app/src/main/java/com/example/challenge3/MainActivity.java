@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity {
                 .commit();
     }
 
+
     public ConversationViewModel getViewModel() {
         return viewModel;
     }

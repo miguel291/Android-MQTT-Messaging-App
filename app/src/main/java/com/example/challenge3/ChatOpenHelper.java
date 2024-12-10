@@ -65,7 +65,7 @@ public class ChatOpenHelper extends SQLiteOpenHelper {
         return db.insert(TABLE_CHAT, null, values);
     }
 
-    // Retrieve messages for a specific chat
+    // Retrieve messages for a specific chat (by chat id)
     public ArrayList<Message> getMessages(int chatId) {
         SQLiteDatabase db = this.getReadableDatabase();
         String query = "SELECT * FROM " + TABLE_CHAT + " WHERE " + COLUMN_CHAT_ID + " = ?";
@@ -81,6 +81,29 @@ public class ChatOpenHelper extends SQLiteOpenHelper {
                 String receiverId = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_RECEIVER_ID));
 
                 Message message = new Message(messageId, chatId, new User(senderId), new User(receiverId), content, timestamp);
+
+                messages.add(message);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return messages;
+    }
+
+    // Retrieve messages for a specific chat (by sender and receiver)
+    public ArrayList<Message> getMessagesByUsers(int senderId,int receiverId ) {
+        SQLiteDatabase db = this.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_CHAT + " WHERE " + COLUMN_SENDER_ID + " = ?" + " AND " + COLUMN_RECEIVER_ID + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(senderId), String.valueOf(receiverId)});
+        ArrayList<Message> messages = new ArrayList<>();
+
+        if (cursor.moveToFirst()) {
+            do {
+                int messageId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MESSAGE_ID));
+                String content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_MESSAGE));
+                String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_TIMESTAMP));
+                int chatId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_CHAT_ID));
+
+                Message message = new Message(messageId, chatId, new User(String.valueOf(senderId)), new User(String.valueOf(receiverId)), content, timestamp);
 
                 messages.add(message);
             } while (cursor.moveToNext());

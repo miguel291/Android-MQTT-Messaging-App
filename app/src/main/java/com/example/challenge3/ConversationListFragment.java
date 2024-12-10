@@ -1,5 +1,6 @@
 package com.example.challenge3;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 
@@ -21,6 +22,9 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -104,6 +108,8 @@ public class ConversationListFragment extends Fragment {
         Log.d("Debug", "LoggedInUser: " + (viewModel != null ? viewModel.getLoggedInUser() : "null"));
         Log.d("Debug", "User ID: " + (viewModel.getLoggedInUser() != null ? viewModel.getLoggedInUser().getId() : "null"));
 
+        showCustomDialog();
+
         ChatOpenHelper dbHelper = new ChatOpenHelper(requireContext());
         /*String loggedUserId = viewModel.getLoggedInUser().getId(); // get the logged user
 
@@ -131,6 +137,33 @@ public class ConversationListFragment extends Fragment {
                 })
                 .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
                 .show();*/
+    }
+
+
+    void showCustomDialog() {
+        final Dialog dialog = new Dialog(requireContext());
+        //We have added a title in the custom layout. So let's disable the default title.
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+
+        //The user will be able to cancel the dialog bu clicking anywhere outside the dialog.
+        dialog.setCancelable(true);
+        //Mention the name of the layout of your custom dialog.
+        dialog.setContentView(R.layout.dialog_add_chat);
+
+        //Initializing the views of the dialog.
+        final EditText usernameET = dialog.findViewById(R.id.usernameDialog);
+        Button confirmButton = dialog.findViewById(R.id.buttonDialog);
+
+        confirmButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                createToast("aqui esta");
+                dialog.dismiss();
+            }
+        });
+
+        dialog.show();
     }
 
 
