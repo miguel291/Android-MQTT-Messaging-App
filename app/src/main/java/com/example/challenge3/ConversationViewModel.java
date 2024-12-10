@@ -9,20 +9,48 @@ import java.util.ArrayList;
 public class ConversationViewModel extends ViewModel {
 
     private MutableLiveData<ArrayList<Chat>> chats = new MutableLiveData<>(new ArrayList<>());
-   // private MutableLiveData<ArrayList<User>> users = new MutableLiveData<>(new ArrayList<>());
+    private MutableLiveData<ArrayList<User>> users = new MutableLiveData<>(new ArrayList<>());
+
     // In your ViewModel, set the logged-in user when the user logs in
-    private MutableLiveData<User> loggedInUser = new MutableLiveData<>();
+    private User loggedInUser;
 
     public ConversationViewModel() {
        //Initialize the viewmodel
     }
 
-    public void setLoggedInUser(User user) {
-        loggedInUser.setValue(user);
-    }
+
 
     public User getLoggedInUser() {
-        return loggedInUser.getValue();
+        return loggedInUser;
+    }
+
+    public void setLoggedInUser(User user) {
+        this.loggedInUser = user;
+    }
+
+    public String getLoggedInUserId() {
+        return loggedInUser.getId();
+    }
+
+    public LiveData<ArrayList<User>> getUsers() {
+        return users;
+    }
+
+    public void setUsers(ArrayList<User> newUsers) {
+        users.setValue(newUsers);
+    }
+
+    public User getUserById(String userId) {
+        for (User user : users.getValue()) {
+            if (user.getId().equals(userId)) {
+                return user;
+            }
+        }
+        return null;
+    }
+
+    public void addUser(User user){
+        users.getValue().add(user);
     }
 
 

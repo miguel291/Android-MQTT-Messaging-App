@@ -1,4 +1,3 @@
-
 package com.example.challenge3;
 
 import android.content.Context;
@@ -37,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
         // Initialize database helper and writable database
         dbHelper = new ChatOpenHelper(this);
         database = dbHelper.getWritableDatabase();
+
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
 
@@ -55,14 +55,24 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String userId = sharedPreferences.getString("USER_ID", null);
 
+        //Log.i("DEBUG", "USERIDPreferences: " + userId.toString());
+
+
         // if there is already a user id in the preferences
         if (userId != null) {
+            User loggedUser = new User(userId);
+
+            saveUser(loggedUser);
+            // Set the logged user in the view model
+            viewModel.setLoggedInUser(loggedUser);
+
             dbLoadingIntoObject(); // Load chats for the logged-in user
             createToast("Welcome " + userId);
 
             showChatList();
         } else{
             // Show user form if the app is launched for the first time
+            createToast("Welcome, please login (insert your alphanumeric code)");
             showUserForm();
         }
     }
@@ -123,15 +133,23 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void dbLoadingIntoObject() {
+
         User loggedInUser = viewModel.getLoggedInUser();
 
         if (loggedInUser != null) {
             try {
                 ArrayList<Chat> chatsFromDb = dbHelper.getChats(loggedInUser.getId());
                 viewModel.setChats(chatsFromDb);
+                createToast("Chats loaded successfully");
             } catch (Exception e) {
-                Toast.makeText(this, "Error loading chats: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                createToast("Error loading chats: " + e.getMessage());
+                //Toast.makeText(this, "Error loading chats: " + e.getMessage(), Toast.LENGTH_SHORT).show();
             }
+        }
+        else {
+            createToast("User not found");
+            Log.i("ERROR", "USERID: " + viewModel.getLoggedInUserId().toString());
+            //Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
 
         }
 
@@ -178,6 +196,12 @@ public class MainActivity extends AppCompatActivity {
         int duration = Toast.LENGTH_SHORT;
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
+    }
+
+    public void saveUser(User user){
+        dbHelper.saveUser(user);
+        viewModel.addUser(user);
+        viewModel.setLoggedInUser(user);
     }
 }
 

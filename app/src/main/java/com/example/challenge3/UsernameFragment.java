@@ -32,7 +32,7 @@ public class UsernameFragment extends Fragment {
         AppCompatActivity activityCompat = (AppCompatActivity) getActivity();
         if (activityCompat != null) {
             activityCompat.setSupportActionBar(toolbar);
-            activityCompat.getSupportActionBar().setTitle("MChat"); // Set toolbar title
+            activityCompat.getSupportActionBar().setTitle("Chat"); // Set toolbar title
         }
 
 
@@ -47,7 +47,8 @@ public class UsernameFragment extends Fragment {
         loginBtn.setOnClickListener(v -> {
             String id = editTextId.getText().toString().trim(); // Get the string value
             if (isAlphanumeric(id)) {
-                saveUser(id);
+                User  newUser = new User(id);
+                saveUser(newUser);
 
                 // Directly call MainActivity's method
                 MainActivity activity = (MainActivity) requireActivity();
@@ -71,10 +72,13 @@ public class UsernameFragment extends Fragment {
     /*
         Save user to SharedPreferences
      */
-    private void saveUser(String userId) {
+    private void saveUser(User user) {
         SharedPreferences.Editor editor = sharedPreferences.edit();
-        editor.putString("USER_ID", userId);
+        editor.putString("USER_ID", user.getId());
         editor.apply();
+        MainActivity activity = (MainActivity) requireActivity();
+        activity.saveUser(user);
+        activity.dbLoadingIntoObject();
     }
 
     /*

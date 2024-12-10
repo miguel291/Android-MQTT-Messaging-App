@@ -143,4 +143,11 @@ public class ChatOpenHelper extends SQLiteOpenHelper {
         cursor.close();
         return users;
     }
+
+    public void saveUser(User user){
+        SQLiteDatabase db = this.getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("user_id", user.getId());
+        db.insert("users", null, values);
+    }
 }
