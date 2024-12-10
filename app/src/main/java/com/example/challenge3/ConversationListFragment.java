@@ -158,8 +158,13 @@ public class ConversationListFragment extends Fragment {
         confirmButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                createToast("aqui esta");
-                dialog.dismiss();
+                String chatWith = usernameET.getText().toString();
+                if(!chatWith.isEmpty()){ // INSERT VALIDATION IF USER EXISTS
+                    ((MainActivity) requireActivity()).showChatFragment(new Chat(1, new User("Manel"), new User(chatWith)));
+                    dialog.dismiss();
+                } else{
+                    usernameET.setError("This username do not exist");
+                }
             }
         });
 
