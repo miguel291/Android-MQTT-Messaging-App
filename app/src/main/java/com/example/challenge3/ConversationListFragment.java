@@ -104,7 +104,7 @@ public class ConversationListFragment extends Fragment {
         Log.d("Debug", "LoggedInUser: " + (viewModel != null ? viewModel.getLoggedInUser() : "null"));
         Log.d("Debug", "User ID: " + (viewModel.getLoggedInUser() != null ? viewModel.getLoggedInUser().getId() : "null"));
 
-        DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(requireContext());
+        ChatOpenHelper dbHelper = new ChatOpenHelper(requireContext());
         /*String loggedUserId = viewModel.getLoggedInUser().getId(); // get the logged user
 
         createToast("Logged User" + loggedUserId);*/

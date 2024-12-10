@@ -8,19 +8,24 @@ import android.database.sqlite.SQLiteOpenHelper;
 import java.util.ArrayList;
 
 
-public class DictionaryOpenHelper extends SQLiteOpenHelper {
+public class ChatOpenHelper extends SQLiteOpenHelper {
     public static final int DATABASE_VERSION = 3; // Increment version for the updated schema
     public static final String DATABASE_NAME = "chatApp.db";
 
-    // Tables and Columns
+    // Table chat name
     public static final String TABLE_CHAT = "chat";
+
+    // Table chat columns
     public static final String COLUMN_CHAT_ID = "chat_id";
     public static final String COLUMN_MESSAGE_ID = "message_id";
     public static final String COLUMN_SENDER_ID = "sender_id";
     public static final String COLUMN_RECEIVER_ID = "receiver_id";
     public static final String COLUMN_MESSAGE = "message";
+    // SQLite does not have a storage class set aside for storing dates and/or times
+    // TEXT as ISO8601 strings ("YYYY-MM-DD HH:MM:SS.SSS").
     public static final String COLUMN_TIMESTAMP = "timestamp";
 
+    // Create chat table string
     private static final String TABLE_CHAT_CREATE =
             "CREATE TABLE " + TABLE_CHAT + " (" +
                     COLUMN_MESSAGE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -30,15 +35,17 @@ public class DictionaryOpenHelper extends SQLiteOpenHelper {
                     COLUMN_MESSAGE + " TEXT NOT NULL, " +
                     COLUMN_TIMESTAMP + " TEXT NOT NULL);";
 
-    public DictionaryOpenHelper(Context context) {
+    public ChatOpenHelper(Context context) {
         super(context, DATABASE_NAME, null, DATABASE_VERSION);
     }
 
+    // create chat table
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_CHAT_CREATE);
     }
 
+    // replace database versions
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_CHAT);

@@ -24,7 +24,7 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     ConversationViewModel viewModel;
-    DictionaryOpenHelper dbHelper;
+    ChatOpenHelper dbHelper;
     SQLiteDatabase database;
 
     @Override
@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Initialize database helper and writable database
-        dbHelper = new DictionaryOpenHelper(this);
+        dbHelper = new ChatOpenHelper(this);
         database = dbHelper.getWritableDatabase();
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
         }
 
         // Initialize the database helper
-        DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(this);
+        ChatOpenHelper dbHelper = new ChatOpenHelper(this);
 
         // Insert fake data into the database and load it into LiveData
         Chat chat = new Chat(1, new User("Sender1"), new User("Sender2"));
