@@ -162,7 +162,7 @@ public class ConversationListFragment extends Fragment {
                 if(!chatWith.isEmpty()){ // INSERT VALIDATION IF USER EXISTS
                     ((MainActivity) requireActivity()).showChatFragment(new Chat(1, new User("Manel"), new User(chatWith)));
                     dialog.dismiss();
-                } else{
+                }else{
                     usernameET.setError("This username do not exist");
                 }
             }
