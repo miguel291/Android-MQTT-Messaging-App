@@ -50,22 +50,24 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
+        /* Load data from DB to objects (viewModel) */
+        loadUserFromDB();
+        loadMessagesFromDB();
+
         // Check if the user is already logged in, if true gets its id
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String userId = sharedPreferences.getString("USER_ID", null);
 
-        //Log.i("DEBUG", "USERIDPreferences: " + userId.toString());
-
-
         // if there is already a user id in the preferences
         if (userId != null) {
-            User loggedUser = new User(userId);
+            User newUser = new User(userId);
+            viewModel.addUser(newUser);
+            databaseFinal.insertUser(newUser);
+            viewModel.setLoggedInUser(newUser);
 
-            saveUser(loggedUser);
-            // Set the logged user in the view model
-            viewModel.setLoggedInUser(loggedUser);
+            // Load Chats for the logged user
+            databaseFinal.getChats(newUser.getId());
 
-            dbLoadingIntoObject(); // Load chats for the logged-in user
             createToast("Welcome " + userId);
 
             showChatList();
@@ -132,39 +134,17 @@ public class MainActivity extends AppCompatActivity {
         return viewModel;
     }
 
-    public void dbLoadingIntoObject() {
-
-        User loggedInUser = viewModel.getLoggedInUser();
-
-        if (loggedInUser != null) {
-            try {
-
-                //LOAD CHAT HERE
-
-                createToast("Chats loaded successfully");
-            } catch (Exception e) {
-                createToast("Error loading chats: " + e.getMessage());
-                //Toast.makeText(this, "Error loading chats: " + e.getMessage(), Toast.LENGTH_SHORT).show();
-            }
-        }
-        else {
-            createToast("User not found");
-            Log.i("ERROR", "USERID: " + viewModel.getLoggedInUserId().toString());
-            //Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
-
-        }
-
-        // Insert fake data into the database and load it into LiveData
-        Chat chat = new Chat(1, new User("Sender1"), new User("Sender2"));
-
-        // Verify the messages are loaded into LiveData
-        chat.getMessagesLiveData().observe(this, messages -> {
-            Log.d("MainActivity", "Loaded messages: " + messages.size());
-            for (Message message : messages) {
-                Log.d("MainActivity", "Message: " + message.getContent());
-            }
-        });
+    /* Load users from db to viewmodel */
+    public void loadUserFromDB(){
+        databaseFinal.randomUsers(); // create random users
+        viewModel.setUsers(databaseFinal.getAllUsers());
     }
+
+    public void loadMessagesFromDB(){
+        databaseFinal.randomMessages(); // create random messages
+        viewModel.setMessages(databaseFinal.getAllMessages());
+    }
+
 
 
     public void updateDb(){
@@ -196,24 +176,14 @@ public class MainActivity extends AppCompatActivity {
         toast.show();
     }
 
-    public void saveUser(User user){
+   /* public void saveUser(User user){
+        // Load
+        viewModel.setUsers(databaseFinal.getAllUsers());
         viewModel.addUser(user);
         viewModel.setLoggedInUser(user);
 
-        /* TEST */
-        databaseFinal.randomUsers();
-
-        ArrayList<User> users = new ArrayList<>();
-        users.add(new User("user1"));
-        users.add(new User("user2"));
-        users.add(new User("user3"));
-        viewModel.setUsers(users);
-
-    }
-
-    public void saveUserV2(String username){
-        databaseFinal.loginUser(username);
-    }
+        Log.i("DEBUG", "Users loaded: " + viewModel.getUsers().toString());
+    }*/
 
     public boolean userExists(String username){
         return databaseFinal.userExists(username);

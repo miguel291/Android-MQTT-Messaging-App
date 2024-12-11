@@ -74,12 +74,7 @@ public class ConversationListFragment extends Fragment {
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // Observe LiveData for chat updates
-        viewModel.getChats().observe(getViewLifecycleOwner(), chats -> {
-            if (chats != null) {
-                adapter.updateChats(chats); // Update adapter with new data
-            }
-        });
+
 
         // Menu setup
         requireActivity().addMenuProvider(new MenuProvider() {
@@ -167,7 +162,7 @@ public class ConversationListFragment extends Fragment {
 
 
     private void showDeleteDialog(int position) {
-        new AlertDialog.Builder(requireContext())
+        /*new AlertDialog.Builder(requireContext())
                 .setTitle("Delete Chat")
                 .setMessage("Are you sure you want to delete this chat?")
                 .setPositiveButton("Yes", (dialog, which) -> {
@@ -178,7 +173,7 @@ public class ConversationListFragment extends Fragment {
                     dialog.dismiss();
                 })
                 .setNegativeButton("No", (dialog, which) -> dialog.dismiss())
-                .show();
+                .show();*/
     }
 
 }
