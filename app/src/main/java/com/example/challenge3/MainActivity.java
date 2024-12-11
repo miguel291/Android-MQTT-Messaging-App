@@ -1,8 +1,6 @@
 package com.example.challenge3;
 
-import android.content.Context;
 import android.content.SharedPreferences;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
@@ -16,15 +14,13 @@ import androidx.lifecycle.ViewModelProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.Toast;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
     ConversationViewModel viewModel;
-    SQLiteDatabase database;
     DatabaseFunctions databaseFinal;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -45,23 +41,27 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        // Load data from DB into ViewModel
-        loadMessagesFromDB(); // Messages should not depend on logged user
-        loadUserFromDB(); // Load existing users
-
         // Check if the user is already logged in
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String userId = sharedPreferences.getString("USER_ID", null);
         Log.d("MainActivity", "USER_ID from SharedPreferences: " + userId);
 
+        // Load data from DB into ViewModel
+        loadUserFromDB(userId); // Load existing users
+        loadMessagesFromDB(); // Messages should not depend on logged user
+
         if (userId != null) {
-            User loggedUser = new User(userId);
+            User loggedUser = viewModel.getUserById(userId);
+
+            if(loggedUser == null) {
+                loggedUser = new User(userId);
+                viewModel.addUser(loggedUser);
+            }
 
             if (!databaseFinal.userExists(userId)) {
                 databaseFinal.insertUser(loggedUser);
             }
 
-            viewModel.addUser(loggedUser);
             viewModel.setLoggedInUser(loggedUser);
             Log.d("MainActivity", "Logged-in user: " + loggedUser.getId());
 
@@ -130,11 +130,8 @@ public class MainActivity extends AppCompatActivity {
         return viewModel;
     }
 
-    /* Load users from db to viewmodel */
     /* Load users from db to ViewModel */
-    public void loadUserFromDB() {
-        SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-        String userId = sharedPreferences.getString("USER_ID", null);
+    public void loadUserFromDB(String userId) {
 
         // Create random users if no users exist
         if (databaseFinal.getAllUsers().isEmpty()) {
@@ -143,31 +140,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Retrieve all users from the database and set them in the ViewModel
         viewModel.setUsers(databaseFinal.getAllUsers());
-
-        // Check if a logged user exists
-        if (userId != null && databaseFinal.userExists(userId)) {
-            User loggedUser = new User(userId);
-            viewModel.setLoggedInUser(loggedUser);
-        } else {
-            viewModel.setLoggedInUser(null); // No logged user found
-        }
     }
-
-
 
     public void loadMessagesFromDB(){
-        databaseFinal.randomMessages(); // create random messages
         viewModel.setMessages(databaseFinal.getAllMessages());
-    }
-
-
-
-    public void updateDb(){
-
-    }
-
-    public User getLoggedUser() {
-        return viewModel.getLoggedInUser();
     }
 
 
@@ -177,10 +153,6 @@ public class MainActivity extends AppCompatActivity {
 
     public User getUserById(String id){
         return viewModel.getUserById(id);
-    }
-
-    public void dynamicChatCreation(){
-
     }
 
     public boolean createMessage(String content, String sender_id, String receiver_id){
