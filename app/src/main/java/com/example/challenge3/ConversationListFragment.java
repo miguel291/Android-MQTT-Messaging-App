@@ -123,7 +123,6 @@ public class ConversationListFragment extends Fragment {
                 String chatWith = usernameET.getText().toString();
                 MainActivity mainActivity = (MainActivity) requireActivity();
 
-
                 if(mainActivity.userExists(chatWith)){ // INSERT VALIDATION IF USER EXISTS
 
                     Log.i("DEBUG", "USERNAME: " + chatWith  + " LOGGED USER ID: " + mainActivity.getLoggedUser().getId());
@@ -132,7 +131,6 @@ public class ConversationListFragment extends Fragment {
                 }else{
                     usernameET.setError("This username do not exist");
                 }
-
             }
         });
 

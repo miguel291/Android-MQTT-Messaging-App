@@ -62,11 +62,12 @@ public class MainActivity extends AppCompatActivity {
         if (userId != null) {
             User newUser = new User(userId);
             viewModel.addUser(newUser);
-            databaseFinal.insertUser(newUser);
             viewModel.setLoggedInUser(newUser);
 
+            databaseFinal.insertUser(newUser);
+
             // Load Chats for the logged user
-            databaseFinal.getChats(newUser.getId());
+            viewModel.setContactedUsers(databaseFinal.getChats(newUser.getId()));
 
             createToast("Welcome " + userId);
 
@@ -176,14 +177,6 @@ public class MainActivity extends AppCompatActivity {
         toast.show();
     }
 
-   /* public void saveUser(User user){
-        // Load
-        viewModel.setUsers(databaseFinal.getAllUsers());
-        viewModel.addUser(user);
-        viewModel.setLoggedInUser(user);
-
-        Log.i("DEBUG", "Users loaded: " + viewModel.getUsers().toString());
-    }*/
 
     public boolean userExists(String username){
         return databaseFinal.userExists(username);

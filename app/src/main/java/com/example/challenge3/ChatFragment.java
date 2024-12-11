@@ -119,6 +119,5 @@ public class ChatFragment extends Fragment {
         // Clear the input field
         messageInput.setText("");
 
-        // Optionally, add logic to persist the message to a database
     }
 }

@@ -255,13 +255,14 @@ public class DatabaseFunctions {
         String query = "SELECT * FROM " + TABLE_MESSAGE ;
         Cursor cursor = db.rawQuery(query, null);
         ArrayList<Message> messages = new ArrayList<>();
+
         if (cursor.moveToFirst()) {
             do {
-                int messageId = cursor.getInt(cursor.getColumnIndexOrThrow("message_id"));
-                String senderId = cursor.getString(cursor.getColumnIndexOrThrow("sender_id"));
-                String receiverId = cursor.getString(cursor.getColumnIndexOrThrow("receiver_id"));
+                int messageId = cursor.getInt(cursor.getColumnIndexOrThrow("id"));
+                String senderId = cursor.getString(cursor.getColumnIndexOrThrow("sender"));
+                String receiverId = cursor.getString(cursor.getColumnIndexOrThrow("receiver"));
                 String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
-                String timestamp = cursor.getString(cursor.getColumnIndexOrThrow("timestamp"));
+                String timestamp = cursor.getString(cursor.getColumnIndexOrThrow("sent_timestamp"));
 
                 messages.add(new Message(messageId, new User(senderId), new User(receiverId), content, timestamp));
             } while (cursor.moveToNext());
