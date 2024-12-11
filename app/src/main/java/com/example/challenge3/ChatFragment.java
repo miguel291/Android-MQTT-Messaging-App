@@ -7,6 +7,7 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -28,8 +29,15 @@ public class ChatFragment extends Fragment {
 
     private EditText messageInput;
     private ImageButton sendButton;
+    ConversationViewModel viewModel;
 
     int messageId = 0;
+
+
+
+    public void loadViewModel() {
+        viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
+    }
 
     public static ChatFragment newInstance(Chat chat) {
         ChatFragment fragment = new ChatFragment();
@@ -54,7 +62,7 @@ public class ChatFragment extends Fragment {
     @Override
    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
-
+        loadViewModel();
         // Set up RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.conversationList);
         ArrayList<Message> initialMessages = chat.getMessagesLiveData().getValue();
@@ -144,8 +152,8 @@ public class ChatFragment extends Fragment {
         }
 
         ((MainActivity) requireActivity()).createMessage(newMessage.getContent(),
-                                                            newMessage.getSender().getId(),
-                                                            newMessage.getReceiver().getId());
+                                                            viewModel.getLoggedInUser().getId(),
+                                                            viewModel.getChattingWithUser().getId());
 
         // Clear the input field
         messageInput.setText("");

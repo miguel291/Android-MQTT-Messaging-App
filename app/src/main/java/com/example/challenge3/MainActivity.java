@@ -118,6 +118,7 @@ public class MainActivity extends AppCompatActivity {
     */
     public void showChatFragment(Chat chat) {
         databaseFinal.createUser(chat.getReceiver().getId());
+        viewModel.setChattingWithUser(chat.getReceiver());
         findViewById(R.id.toolbar).setVisibility(View.GONE); // Show toolbar or customize as needed
         getSupportFragmentManager()
                 .beginTransaction()

@@ -43,7 +43,6 @@ public class ConversationListFragment extends Fragment {
 
     public void loadViewModel() {
         viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
-
     }
 
     @Override

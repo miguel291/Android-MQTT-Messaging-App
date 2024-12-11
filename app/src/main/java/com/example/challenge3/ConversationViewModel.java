@@ -14,6 +14,7 @@ public class ConversationViewModel extends ViewModel {
 
     // In your ViewModel, set the logged-in user when the user logs in
     private User loggedInUser;
+    private User chattingWithUser;
 
     public ConversationViewModel() {
        //Initialize the viewmodel
@@ -27,8 +28,16 @@ public class ConversationViewModel extends ViewModel {
         return loggedInUser;
     }
 
+    public User getChattingWithUser() {
+        return chattingWithUser;
+    }
+
     public void setLoggedInUser(User user) {
         this.loggedInUser = user;
+    }
+
+    public void setChattingWithUser(User user) {
+        this.chattingWithUser = user;
     }
 
     public LiveData<ArrayList<User>> getContactedUsers() {
