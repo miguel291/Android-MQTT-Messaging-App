@@ -24,10 +24,12 @@ import java.util.ArrayList;
 public class ChatFragment extends Fragment {
     private static final String ARG_CHAT = "chat";
     private Chat chat;
-    private String receiver;
+    private String receiverId;
 
     private EditText messageInput;
     private ImageButton sendButton;
+
+    int messageId = 0;
 
     public static ChatFragment newInstance(Chat chat) {
         ChatFragment fragment = new ChatFragment();
@@ -44,18 +46,22 @@ public class ChatFragment extends Fragment {
         if (getArguments() != null) {
             chat = (Chat) getArguments().getSerializable(ARG_CHAT);
             if (chat != null && chat.getReceiver() != null) {
-                receiver = chat.getReceiver().getId();
+                receiverId = chat.getReceiver().getId();
             }
         }
     }
 
     @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
 
         // Set up RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.conversationList);
         ArrayList<Message> initialMessages = chat.getMessagesLiveData().getValue();
+        Log.d("ChatFragment", "Chat received: " + chat.getId());
+
+        Log.d("ChatFragment", "Initial Messages: " + initialMessages);
+
         if (initialMessages == null) {
             initialMessages = new ArrayList<>();
         }
@@ -77,7 +83,7 @@ public class ChatFragment extends Fragment {
 
             if (activity.getSupportActionBar() != null) {
                 activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                activity.getSupportActionBar().setTitle(chat.getReceiver().getId());
+                activity.getSupportActionBar().setTitle(receiverId);
             }
 
             toolbar.setNavigationOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
@@ -94,6 +100,10 @@ public class ChatFragment extends Fragment {
     private void sendMessage() {
         String messageText = messageInput.getText().toString().trim();
 
+        Log.i("ChatFragment", "Sending message: " + messageText);
+        Log.i("ChatFragment", "LoggedUser: " + (chat.getLoggedUser() != null ? chat.getLoggedUser().getId() : "null"));
+        Log.i("ChatFragment", "Receiver: " + (chat.getReceiver() != null ? chat.getReceiver().getId() : "null"));
+
         if (messageText.isEmpty()) {
             Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT).show();
             return;
@@ -105,9 +115,10 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        int messageId = chat.getChatSize() + 1;
+
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
         Message newMessage = new Message(messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, timestamp);
+        messageId++;
 
         if (!((MainActivity) requireActivity()).createMessage(messageText, chat.getLoggedUser().getId(), chat.getReceiver().getId())) {
             Toast.makeText(requireContext(), "Message not sent", Toast.LENGTH_SHORT).show();
@@ -121,6 +132,20 @@ public class ChatFragment extends Fragment {
         }
         updatedMessages.add(newMessage);
         chat.getMessagesLiveData().setValue(updatedMessages);
+
+        // Scroll to the last message
+        RecyclerView recyclerView = requireView().findViewById(R.id.conversationList);
+        recyclerView.scrollToPosition(updatedMessages.size() - 1);
+
+        // Update the adapter
+        MessageAdapter adapter = (MessageAdapter) recyclerView.getAdapter();
+        if (adapter != null) {
+            adapter.updateMessages(updatedMessages);
+        }
+
+        ((MainActivity) requireActivity()).createMessage(newMessage.getContent(),
+                                                            newMessage.getSender().getId(),
+                                                            newMessage.getReceiver().getId());
 
         // Clear the input field
         messageInput.setText("");

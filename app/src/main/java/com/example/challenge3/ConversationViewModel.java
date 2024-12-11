@@ -68,6 +68,9 @@ public class ConversationViewModel extends ViewModel {
         return messages;
     }
 
+    public void addMessage(Message message) {
+        messages.getValue().add(message);
+    }
 
 
 }

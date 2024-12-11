@@ -31,6 +31,7 @@ public class ConversationListFragment extends Fragment {
 
     RecyclerView recyclerView;
     ConversationViewModel viewModel;
+    int chatId = 0;
 
     public ConversationListFragment() {
         // Required empty public constructor
@@ -48,6 +49,7 @@ public class ConversationListFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_conversation_list, container, false);
+        loadViewModel();
 
         Toolbar toolbar = view.findViewById(R.id.toolbarcl);
         AppCompatActivity activity = (AppCompatActivity) getActivity();
@@ -77,7 +79,6 @@ public class ConversationListFragment extends Fragment {
             }
         }, getViewLifecycleOwner());
 
-        loadViewModel();
         return view;
     }
 
@@ -85,26 +86,50 @@ public class ConversationListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        User loggedUser = viewModel.getLoggedInUser(); // Declare as final
+        User loggedUser = viewModel.getLoggedInUser();
         if (loggedUser == null) {
             Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         ArrayList<User> contactedUsers = ((MainActivity) requireActivity()).databaseFinal.getChats(loggedUser.getId());
+
         Adapter adapter = new Adapter(contactedUsers, user -> {
             if (user != null) {
+                MainActivity mainActivity = (MainActivity) requireActivity();
+
+                // Retrieve all messages from LiveData
+                ArrayList<Message> allMessages = viewModel.getMessages().getValue();
+                ArrayList<Message> filteredMessages = new ArrayList<>();
+
+                if (allMessages != null) {
+                    // Filter messages exchanged with the selected user
+                    for (Message message : allMessages) {
+                        if ((message.getSender().getId().equals(loggedUser.getId()) && message.getReceiver().getId().equals(user.getId())) ||
+                                (message.getSender().getId().equals(user.getId()) && message.getReceiver().getId().equals(loggedUser.getId()))) {
+                            filteredMessages.add(message);
+                        }
+                    }
+                }
+
+                // Create a new Chat object and set filtered messages
                 Chat chat = new Chat(1, loggedUser, user);
-                openConversation(chat);
+                chat.setMessages(filteredMessages);
+
+                openConversation(chat); // Open the chat with the retrieved messages
             }
         }, position -> {
-            // Handle delete logic
+            // Handle delete logic if needed
         });
+
+
 
         recyclerView = view.findViewById(R.id.chatList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
     }
+
+
 
 
     public void showCustomDialog() {
