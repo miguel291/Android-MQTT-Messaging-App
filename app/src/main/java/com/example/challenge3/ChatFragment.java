@@ -111,7 +111,10 @@ public class ChatFragment extends Fragment {
         Message newMessage = new Message(messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, "2024-12-08 12:00:00"); // Replace with current timestamp dynamically
 
         // ACTUALLY REGISTERING MESSAGES
-        ((MainActivity) requireActivity()).createMessage(messageText, receiver, receiver);
+        if(!((MainActivity) requireActivity()).createMessage(messageText, receiver, receiver)){
+            Toast.makeText(requireContext(), "Message not sent", Toast.LENGTH_SHORT).show();
+        }
+
 
         // Add the message to the chat's LiveData
         chat.addMessage(newMessage);
