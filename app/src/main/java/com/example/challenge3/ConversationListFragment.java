@@ -95,51 +95,19 @@ public class ConversationListFragment extends Fragment {
                 if (id == R.id.arduinoConfigButton) {
                     ((MainActivity) requireActivity()).showArduinoConf();
                 } else if (id == R.id.action_add_chat) {
-                        showUserListDialog();
+                        showCustomDialog();
                 }
                 return true;
             }
         }, getViewLifecycleOwner());
     }
 
-    private void showUserListDialog() {
+    public void showCustomDialog() {
 
         Log.d("Debug", "ViewModel: " + viewModel);
         Log.d("Debug", "LoggedInUser: " + (viewModel != null ? viewModel.getLoggedInUser() : "null"));
         Log.d("Debug", "User ID: " + (viewModel.getLoggedInUser() != null ? viewModel.getLoggedInUser().getId() : "null"));
 
-        showCustomDialog();
-
-        /*String loggedUserId = viewModel.getLoggedInUser().getId(); // get the logged user
-
-        createToast("Logged User" + loggedUserId);*/
-
-        /*ArrayList<User> users = dbHelper.getAllUsersExcept(loggedUserId);
-
-        if (users.isEmpty()) {
-            createToast("No users available to start a chat.");
-            return;
-        }
-
-        // Converti gli utenti in un array di nomi
-        String[] userNames = new String[users.size()];
-        for (int i = 0; i < users.size(); i++) {
-            userNames[i] = users.get(i).getId();
-        }
-
-        // Mostra un AlertDialog con la lista degli utenti
-        new AlertDialog.Builder(requireContext())
-                .setTitle("Select a user")
-                .setItems(userNames, (dialog, which) -> {
-                    User selectedUser = users.get(which);
-                    startNewChat(selectedUser);
-                })
-                .setNegativeButton("Cancel", (dialog, which) -> dialog.dismiss())
-                .show();*/
-    }
-
-
-    void showCustomDialog() {
         final Dialog dialog = new Dialog(requireContext());
         //We have added a title in the custom layout. So let's disable the default title.
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -158,39 +126,30 @@ public class ConversationListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String chatWith = usernameET.getText().toString();
-                if(((MainActivity) requireActivity()).userExists(chatWith)){ // INSERT VALIDATION IF USER EXISTS
-                    ((MainActivity) requireActivity()).showChatFragment(new Chat(1, new User("Manel"), new User(chatWith)));
+                MainActivity mainActivity = (MainActivity) requireActivity();
+
+
+                if(mainActivity.userExists(chatWith)){ // INSERT VALIDATION IF USER EXISTS
+
+                    Log.i("DEBUG", "USERNAME: " + chatWith  + " LOGGED USER ID: " + mainActivity.getLoggedUser().getId());
+                    mainActivity.showChatFragment(new Chat(1, mainActivity.getLoggedUser(), mainActivity.getUserById(chatWith)) );
                     dialog.dismiss();
                 }else{
                     usernameET.setError("This username do not exist");
                 }
+
             }
         });
 
         dialog.show();
     }
 
+    public void showChatList(){
 
-
-
-    private void startNewChat(User selectedUser) {
-        //DictionaryOpenHelper dbHelper = new DictionaryOpenHelper(requireContext());
-        //User loggedUser = viewModel.getLoggedInUser();
-
-        createToast("New chat button clicked!");
-        /*New chat creation
-        Chat newChat = dbHelper.createNewChat(loggedUser, selectedUser, "Hello " + selectedUser.getId() + "!");
-
-        // Aggiungi la chat alla lista e aggiorna la LiveData
-        ArrayList<Chat> currentChats = new ArrayList<>(viewModel.getChats().getValue());
-        currentChats.add(newChat);
-        viewModel.setChats(currentChats);
-
-        createToast("Chat started with " + selectedUser.getId());*/
-
+        // Dinamically create the chats using some DB function and show them into the recycler view
+        MainActivity mainActivity = (MainActivity) requireActivity();
+        mainActivity.dynamicChatCreation();
     }
-
-
 
     private void createToast(String message) {
         Context context = getContext();

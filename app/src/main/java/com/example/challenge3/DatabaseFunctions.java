@@ -1,5 +1,12 @@
 package com.example.challenge3;
 
+import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_CONTENT;
+import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_RECEIVER;
+import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_SENDER;
+import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP;
+import static com.example.challenge3.DatabaseOpenHelper.COLUMN_MESSAGE_ID;
+import static com.example.challenge3.DatabaseOpenHelper.TABLE_MESSAGE;
+
 import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
@@ -8,6 +15,7 @@ import android.util.Log;
 import java.sql.Timestamp;
 
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 
 public class DatabaseFunctions {
     private final DatabaseOpenHelper dbHelper;
@@ -67,14 +75,104 @@ public class DatabaseFunctions {
         ContentValues values = new ContentValues();
         values.put(DatabaseOpenHelper.COLUMN_CHAT_CONTENT, content);
         values.put(DatabaseOpenHelper.COLUMN_CHAT_SENDER, sender_id);
-        values.put(DatabaseOpenHelper.COLUMN_CHAT_RECEIVER, receiver_id);
+        values.put(COLUMN_CHAT_RECEIVER, receiver_id);
         values.put(DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP, timestamp_str);
 
         // insert user
-        long value = db.insert(DatabaseOpenHelper.TABLE_MESSAGE, null,values);
+        long value = db.insert(TABLE_MESSAGE, null,values);
         Log.i("DATAFINAL", ("Chat added: " + String.valueOf(value)));
 
         return value != -1;
+    }
+
+
+    public ArrayList<Message> dynamicChatCreation(String senderId, String receiverId){
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_MESSAGE +
+                " WHERE " + COLUMN_CHAT_SENDER + " = ? AND " + COLUMN_CHAT_RECEIVER + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(senderId), String.valueOf(receiverId)});
+        ArrayList<Message> messages = new ArrayList<>();
+
+        if (cursor.moveToFirst()) {
+            do {
+                int messageId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MESSAGE_ID));
+                String content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_CONTENT));
+                String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_TIMESTAMP));
+
+                Message message = new Message(messageId, new User(senderId), new User(receiverId), content, timestamp);
+
+                messages.add(message);
+                Log.i("DATAFINAL", ("Message added: " + message));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return messages;
+
+    }
+
+
+    // Retrieve all chats (only the users list) for a specific user
+    public ArrayList<User> getChats(String loggedUser) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String query = "SELECT * FROM " + TABLE_MESSAGE + " WHERE " + COLUMN_CHAT_SENDER + " = ?" + " AND " + COLUMN_CHAT_RECEIVER + " = ?";
+
+        ArrayList<User> usersToquery = new ArrayList<>();
+        usersToquery = getAllUsersExcept(loggedUser); // get all users except me
+        ArrayList<User> usersContacted = new ArrayList<>();
+
+        for (int i = 0; i < usersToquery.size(); i++) {
+            String user = usersToquery.get(i).getId();
+            Cursor cursor = db.rawQuery(query, new String[]{loggedUser, user}); // user need to change (iterate list)
+
+
+            if (cursor.moveToFirst()) {
+                do {
+                    User user = new User(senderId.equals(userId) ? receiverId : senderId);
+
+                } while (cursor.moveToNext());
+            }
+        }
+        cursor.close();
+        return users;
+    }
+
+    /* Get two users as input and retrieve all the messages between theme*/
+    public ArrayList<Message> getMessages(String sender_id, String receiver_id) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        ArrayList<Message> messages = new ArrayList<>();
+        String query = "SELECT * FROM " + TABLE_MESSAGE + " WHERE " + COLUMN_CHAT_SENDER + " = ?" + " AND " + COLUMN_CHAT_RECEIVER + " = ?";
+        Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(sender_id), String.valueOf(receiver_id)});
+
+        if (cursor.moveToFirst()) {
+            do {
+
+                Message message = new Message(cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MESSAGE_ID)),
+                        new User(sender_id),
+                        new User(receiver_id), cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_CONTENT)),
+                        cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_TIMESTAMP)));
+
+                messages.add(message);
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return messages;
+    }
+
+    // Retrieve all users except the logged-in user
+    public ArrayList<User> getAllUsersExcept(String loggedUserId) {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String query = "SELECT * FROM users WHERE user_id != ?";
+        Cursor cursor = db.rawQuery(query, new String[]{loggedUserId});
+        ArrayList<User> users = new ArrayList<>();
+
+        if (cursor.moveToFirst()) {
+            do {
+                String userId = cursor.getString(cursor.getColumnIndexOrThrow("user_id"));
+                users.add(new User(userId));
+            } while (cursor.moveToNext());
+        }
+        cursor.close();
+        return users;
     }
 
 
@@ -105,4 +203,5 @@ public class DatabaseFunctions {
         Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
 
     }
+
 }

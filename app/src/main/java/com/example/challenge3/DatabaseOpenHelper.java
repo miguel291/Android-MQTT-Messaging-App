@@ -1,21 +1,5 @@
 package com.example.challenge3;
 
-/*
-    CREATE TABLE User (
-    username VARCHAR(255) PRIMARY KEY
-);
-
-CREATE TABLE Chat (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    timestamp DATETIME NOT NULL,
-    content VARCHAR(255),
-    receiver VARCHAR(255),
-    sender VARCHAR(255),
-    FOREIGN KEY (receiver) REFERENCES User(username) ON DELETE CASCADE,
-    FOREIGN KEY (sender) REFERENCES User(username) ON DELETE CASCADE
-);
- */
-
 import android.content.Context;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;

@@ -108,7 +108,7 @@ public class ChatFragment extends Fragment {
         }
 
         // Create a new Message object
-        Message newMessage = new Message(chat.getId(), messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, "2024-12-08 12:00:00"); // Replace with current timestamp dynamically
+        Message newMessage = new Message(messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, "2024-12-08 12:00:00"); // Replace with current timestamp dynamically
 
         // ACTUALLY REGISTERING MESSAGES
         ((MainActivity) requireActivity()).createMessage(messageText, receiver, receiver);

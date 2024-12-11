@@ -202,6 +202,13 @@ public class MainActivity extends AppCompatActivity {
 
         /* TEST */
         databaseFinal.randomUsers();
+
+        ArrayList<User> users = new ArrayList<>();
+        users.add(new User("user1"));
+        users.add(new User("user2"));
+        users.add(new User("user3"));
+        viewModel.setUsers(users);
+
     }
 
     public void saveUserV2(String username){
@@ -210,6 +217,14 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean userExists(String username){
         return databaseFinal.userExists(username);
+    }
+
+    public User getUserById(String id){
+        return viewModel.getUserById(id);
+    }
+
+    public void dynamicChatCreation(){
+
     }
 
     public boolean createMessage(String content, String sender_id, String receiver_id){

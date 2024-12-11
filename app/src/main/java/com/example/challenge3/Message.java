@@ -1,7 +1,6 @@
 package com.example.challenge3;
 
 public class Message {
-    private int chatId;
     private int messageId;
     private User sender;
     private User receiver;
@@ -9,7 +8,7 @@ public class Message {
     private String timestamp;
 
 
-    public Message(int chatId, int messageId, User sender, User receiver, String content, String timestamp) {
+    public Message( int messageId, User sender, User receiver, String content, String timestamp) {
         this.content = content;
         this.timestamp = timestamp;
     }
@@ -46,13 +45,6 @@ public class Message {
         this.receiver = receiver;
     }
 
-    public int getChatId() {
-        return chatId;
-    }
-
-    public void setChatId(int chatId) {
-        this.chatId = chatId;
-    }
 
     public int getMessageId() {
         return messageId;
