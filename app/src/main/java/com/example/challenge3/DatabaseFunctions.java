@@ -5,9 +5,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
+import java.sql.Timestamp;
+
+import java.text.SimpleDateFormat;
 
 public class DatabaseFunctions {
     private final DatabaseOpenHelper dbHelper;
+
+    // string as: 2021-03-24 16:48:05
+    private static final SimpleDateFormat sdf = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss");
+
 
     public DatabaseFunctions(Context context){
         dbHelper = new DatabaseOpenHelper(context);
@@ -26,7 +33,7 @@ public class DatabaseFunctions {
 
         // insert user
         long value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
-        Log.i("DATABASE", ("User added: " + String.valueOf(value)));
+        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
     }
 
     /*
@@ -46,6 +53,28 @@ public class DatabaseFunctions {
         cursor.close();
 
         return (nrRows > 0);
+    }
+
+    public boolean createMessage(String content, String sender_id, String receiver_id){
+        // get db instance
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // get timestamp
+        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
+        String timestamp_str = sdf.format(timestamp);
+
+        // create object
+        ContentValues values = new ContentValues();
+        values.put(DatabaseOpenHelper.COLUMN_CHAT_CONTENT, content);
+        values.put(DatabaseOpenHelper.COLUMN_CHAT_SENDER, sender_id);
+        values.put(DatabaseOpenHelper.COLUMN_CHAT_RECEIVER, receiver_id);
+        values.put(DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP, timestamp_str);
+
+        // insert user
+        long value = db.insert(DatabaseOpenHelper.TABLE_CHAT, null,values);
+        Log.i("DATAFINAL", ("Chat added: " + String.valueOf(value)));
+
+        return value != -1;
     }
 
 

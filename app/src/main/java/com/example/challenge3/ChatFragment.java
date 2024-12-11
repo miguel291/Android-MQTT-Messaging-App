@@ -22,6 +22,7 @@ import java.util.ArrayList;
 public class ChatFragment extends Fragment {
     private static final String ARG_CHAT = "chat";
     private Chat chat;
+    private String receiver;
 
     private EditText messageInput;
     private ImageButton sendButton;
@@ -40,6 +41,7 @@ public class ChatFragment extends Fragment {
 
         if (getArguments() != null) {
             chat = (Chat) getArguments().getSerializable(ARG_CHAT);
+            receiver = chat.getReceiver().getId();
         }
     }
 
@@ -107,6 +109,9 @@ public class ChatFragment extends Fragment {
 
         // Create a new Message object
         Message newMessage = new Message(chat.getId(), messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, "2024-12-08 12:00:00"); // Replace with current timestamp dynamically
+
+        // ACTUALLY REGISTERING MESSAGES
+        ((MainActivity) requireActivity()).createMessage(messageText, receiver, receiver);
 
         // Add the message to the chat's LiveData
         chat.addMessage(newMessage);

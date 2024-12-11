@@ -214,5 +214,9 @@ public class MainActivity extends AppCompatActivity {
     public boolean userExists(String username){
         return databaseFinal.userExists(username);
     }
+
+    public boolean createMessage(String content, String sender_id, String receiver_id){
+        return databaseFinal.createMessage(content,sender_id,receiver_id);
+    }
 }
 
