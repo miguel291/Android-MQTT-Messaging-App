@@ -71,7 +71,7 @@ public class DatabaseFunctions {
         values.put(DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP, timestamp_str);
 
         // insert user
-        long value = db.insert(DatabaseOpenHelper.TABLE_CHAT, null,values);
+        long value = db.insert(DatabaseOpenHelper.TABLE_MESSAGE, null,values);
         Log.i("DATAFINAL", ("Chat added: " + String.valueOf(value)));
 
         return value != -1;
@@ -79,4 +79,30 @@ public class DatabaseFunctions {
 
 
 
+    /* Insert 3 random users into the DB*/
+    public void randomUsers(){
+        // get db instance
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // create object
+        ContentValues values = new ContentValues();
+        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, "user1");
+
+        // insert user
+        long value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
+        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
+
+        values = new ContentValues();
+        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, "user2");
+        value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
+
+        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
+
+        values = new ContentValues();
+        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, "user3");
+        value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
+
+        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
+
+    }
 }

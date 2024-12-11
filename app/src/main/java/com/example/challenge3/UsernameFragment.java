@@ -22,7 +22,6 @@ public class UsernameFragment extends Fragment {
     private SharedPreferences sharedPreferences;
     private EditText editTextId;
 
-
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {

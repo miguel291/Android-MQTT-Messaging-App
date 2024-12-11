@@ -23,7 +23,6 @@ import java.util.ArrayList;
 public class MainActivity extends AppCompatActivity {
 
     ConversationViewModel viewModel;
-    ChatOpenHelper dbHelper;
     SQLiteDatabase database;
     DatabaseFunctions databaseFinal;
 
@@ -35,8 +34,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         // Initialize database helper and writable database
-        dbHelper = new ChatOpenHelper(this);
-        database = dbHelper.getWritableDatabase();
         databaseFinal = new DatabaseFunctions(this);
 
         // Initialize ViewModel
@@ -141,8 +138,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (loggedInUser != null) {
             try {
-                ArrayList<Chat> chatsFromDb = dbHelper.getChats(loggedInUser.getId());
-                viewModel.setChats(chatsFromDb);
+
+                //LOAD CHAT HERE
+
                 createToast("Chats loaded successfully");
             } catch (Exception e) {
                 createToast("Error loading chats: " + e.getMessage());
@@ -155,9 +153,6 @@ public class MainActivity extends AppCompatActivity {
             //Toast.makeText(this, "User not found", Toast.LENGTH_SHORT).show();
 
         }
-
-        // Initialize the database helper
-        ChatOpenHelper dbHelper = new ChatOpenHelper(this);
 
         // Insert fake data into the database and load it into LiveData
         Chat chat = new Chat(1, new User("Sender1"), new User("Sender2"));
@@ -202,9 +197,11 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void saveUser(User user){
-        dbHelper.saveUser(user);
         viewModel.addUser(user);
         viewModel.setLoggedInUser(user);
+
+        /* TEST */
+        databaseFinal.randomUsers();
     }
 
     public void saveUserV2(String username){

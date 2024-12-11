@@ -26,7 +26,7 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
 
     // Table names
     public static final String TABLE_USER = "user";
-    public static final String TABLE_CHAT = "chat";
+    public static final String TABLE_MESSAGE = "message";
 
     // Columns of User table
     public static final String COLUMN_USER_USERNAME = "username";
@@ -44,8 +44,8 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
                     COLUMN_USER_USERNAME + " TEXT PRIMARY KEY);";
 
     // Create chat table string + its relations
-    private static final String TABLE_CHAT_CREATE =
-            "CREATE TABLE " + TABLE_CHAT + " (" +
+    private static final String TABLE_MESSAGE_CREATE =
+            "CREATE TABLE " + TABLE_MESSAGE + " (" +
                     COLUMN_MESSAGE_ID + " INTEGER PRIMARY KEY AUTOINCREMENT, " +
                     COLUMN_CHAT_CONTENT + " TEXT NOT NULL, " +
                     COLUMN_CHAT_TIMESTAMP + " TEXT NOT NULL, " +
@@ -64,13 +64,13 @@ public class DatabaseOpenHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
         db.execSQL(TABLE_USER_CREATE);
-        db.execSQL(TABLE_CHAT_CREATE);
+        db.execSQL(TABLE_MESSAGE_CREATE);
     }
 
     // replace database versions
     @Override
     public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
-        db.execSQL("DROP TABLE IF EXISTS " + TABLE_CHAT);
+        db.execSQL("DROP TABLE IF EXISTS " + TABLE_MESSAGE);
         db.execSQL("DROP TABLE IF EXISTS " + TABLE_USER);
         onCreate(db);
     }

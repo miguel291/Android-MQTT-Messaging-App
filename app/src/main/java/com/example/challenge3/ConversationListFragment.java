@@ -110,7 +110,6 @@ public class ConversationListFragment extends Fragment {
 
         showCustomDialog();
 
-        ChatOpenHelper dbHelper = new ChatOpenHelper(requireContext());
         /*String loggedUserId = viewModel.getLoggedInUser().getId(); // get the logged user
 
         createToast("Logged User" + loggedUserId);*/
