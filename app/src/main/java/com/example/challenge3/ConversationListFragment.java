@@ -159,7 +159,7 @@ public class ConversationListFragment extends Fragment {
             @Override
             public void onClick(View v) {
                 String chatWith = usernameET.getText().toString();
-                if(!chatWith.isEmpty()){ // INSERT VALIDATION IF USER EXISTS
+                if(((MainActivity) requireActivity()).userExists(chatWith)){ // INSERT VALIDATION IF USER EXISTS
                     ((MainActivity) requireActivity()).showChatFragment(new Chat(1, new User("Manel"), new User(chatWith)));
                     dialog.dismiss();
                 }else{

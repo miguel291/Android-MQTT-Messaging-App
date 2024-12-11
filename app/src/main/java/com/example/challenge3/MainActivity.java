@@ -25,6 +25,7 @@ public class MainActivity extends AppCompatActivity {
     ConversationViewModel viewModel;
     ChatOpenHelper dbHelper;
     SQLiteDatabase database;
+    DatabaseFunctions databaseFinal;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
         // Initialize database helper and writable database
         dbHelper = new ChatOpenHelper(this);
         database = dbHelper.getWritableDatabase();
+        databaseFinal = new DatabaseFunctions(this);
 
         // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
@@ -203,6 +205,14 @@ public class MainActivity extends AppCompatActivity {
         dbHelper.saveUser(user);
         viewModel.addUser(user);
         viewModel.setLoggedInUser(user);
+    }
+
+    public void saveUserV2(String username){
+        databaseFinal.loginUser(username);
+    }
+
+    public boolean userExists(String username){
+        return databaseFinal.userExists(username);
     }
 }
 

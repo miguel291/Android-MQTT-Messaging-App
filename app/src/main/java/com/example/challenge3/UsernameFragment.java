@@ -78,6 +78,8 @@ public class UsernameFragment extends Fragment {
         editor.apply();
         MainActivity activity = (MainActivity) requireActivity();
         activity.saveUser(user);
+        activity.saveUserV2(user.getId());
+
         activity.dbLoadingIntoObject();
     }
 
