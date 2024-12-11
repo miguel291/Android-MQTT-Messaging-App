@@ -40,10 +40,12 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     public void updateMessages(List<Message> newMessages) {
+        int oldSize = this.messages.size();
         this.messages.clear();
         this.messages.addAll(newMessages);
-        notifyDataSetChanged();
+        notifyItemRangeInserted(oldSize, newMessages.size() - oldSize);
     }
+
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
 

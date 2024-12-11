@@ -17,6 +17,7 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.Toast;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class ChatFragment extends Fragment {
@@ -49,45 +50,36 @@ public class ChatFragment extends Fragment {
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
 
-        // Check the chat validity
-        if (chat == null) {
-            Toast.makeText(requireContext(), "Chat data is missing", Toast.LENGTH_SHORT).show();
-            requireActivity().getSupportFragmentManager().popBackStack();
-            return view;
-        }
-
+        // Set up RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.conversationList);
-        MessageAdapter adapter = new MessageAdapter(chat.getMessagesLiveData().getValue());
+        MessageAdapter adapter = new MessageAdapter(new ArrayList<>());
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // Initialize messages if null
-        if (chat.getMessagesLiveData() == null) {
-            chat.setMessages(new ArrayList<>()); // Initialize empty list
-        }
-
-        // Configure the toolbar
-        AppCompatActivity activity = (AppCompatActivity) requireActivity();
-        Toolbar toolbar = view.findViewById(R.id.toolbar); // Use the toolbar from the fragment's layout
-        if (toolbar != null) {
-            activity.setSupportActionBar(toolbar);
-
-            if (activity.getSupportActionBar() != null) {
-                activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-                activity.getSupportActionBar().setTitle(chat.getReceiver() != null ? chat.getReceiver().getId() : "Unknown User");
-            }
-
-            // Set the back navigation listener
-            toolbar.setNavigationOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
-        }
-
-        // Observe changes to the messages list
+        // Observe changes to LiveData
         chat.getMessagesLiveData().observe(getViewLifecycleOwner(), newMessages -> {
             adapter.updateMessages(newMessages);
             recyclerView.scrollToPosition(newMessages.size() - 1); // Scroll to the latest message
         });
 
-        // Configure the message input and send button
+        // Set up Toolbar
+        Toolbar toolbar = view.findViewById(R.id.toolbar);
+        AppCompatActivity activity = (AppCompatActivity) requireActivity();
+        if (toolbar != null) {
+            activity.setSupportActionBar(toolbar);
+
+            if (activity.getSupportActionBar() != null) {
+                activity.getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+                activity.getSupportActionBar().setTitle(chat.getReceiver().getId());
+            }
+
+            // Add navigation click listener to handle back action
+            toolbar.setNavigationOnClickListener(v -> {
+                requireActivity().getSupportFragmentManager().popBackStack();
+            });
+        }
+
+        // Initialize message input and send button
         messageInput = view.findViewById(R.id.messageInput);
         sendButton = view.findViewById(R.id.sendButton);
         sendButton.setOnClickListener(v -> sendMessage());
@@ -95,32 +87,39 @@ public class ChatFragment extends Fragment {
         return view;
     }
 
+
+
     /**
      * Sends a message and updates the chat's messages list.
      */
     private void sendMessage() {
         String messageText = messageInput.getText().toString().trim();
-        int messageId = chat.getChatSize() + 1; // Generate a unique message ID
 
         if (messageText.isEmpty()) {
             Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Create a new Message object
-        Message newMessage = new Message(messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, "2024-12-08 12:00:00"); // Replace with current timestamp dynamically
+        int messageId = chat.getChatSize() + 1; // Generate a unique message ID
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 
-        // ACTUALLY REGISTERING MESSAGES
-        if(!((MainActivity) requireActivity()).createMessage(messageText, receiver, receiver)){
+        // Create a new Message object
+        Message newMessage = new Message(messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, timestamp);
+
+        // Save the message to the database
+        if (!((MainActivity) requireActivity()).createMessage(messageText, chat.getLoggedUser().getId(), chat.getReceiver().getId())) {
             Toast.makeText(requireContext(), "Message not sent", Toast.LENGTH_SHORT).show();
+            return;
         }
 
-
-        // Add the message to the chat's LiveData
-        chat.addMessage(newMessage);
+        // Update LiveData for messages
+        ArrayList<Message> updatedMessages = new ArrayList<>(chat.getMessagesLiveData().getValue());
+        updatedMessages.add(newMessage);
+        chat.getMessagesLiveData().setValue(updatedMessages);
 
         // Clear the input field
         messageInput.setText("");
-
     }
+
+
 }

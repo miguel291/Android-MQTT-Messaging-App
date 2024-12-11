@@ -44,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(myToolbar);
 
         // Apply window insets for edge-to-edge display
-        View rootView = findViewById(R.id.main); // Replace with your root view ID
+        View rootView = findViewById(R.id.main);
         ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
             Insets systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
             v.setPadding(systemInsets.left, systemInsets.top, systemInsets.right, systemInsets.bottom);

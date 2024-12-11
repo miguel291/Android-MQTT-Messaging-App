@@ -66,28 +66,21 @@ public class DatabaseFunctions {
         return (nrRows > 0);
     }
 
-    public boolean createMessage(String content, String sender_id, String receiver_id){
-        // get db instance
+    public boolean createMessage(String content, String sender_id, String receiver_id) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        // get timestamp
-        Timestamp timestamp = new Timestamp(System.currentTimeMillis());
-        String timestamp_str = sdf.format(timestamp);
+        // Generate timestamp
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
 
-        // create object
         ContentValues values = new ContentValues();
         values.put(DatabaseOpenHelper.COLUMN_CHAT_CONTENT, content);
         values.put(DatabaseOpenHelper.COLUMN_CHAT_SENDER, sender_id);
-        values.put(COLUMN_CHAT_RECEIVER, receiver_id);
-        values.put(DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP, timestamp_str);
+        values.put(DatabaseOpenHelper.COLUMN_CHAT_RECEIVER, receiver_id);
+        values.put(DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP, timestamp);
 
-        // insert user
-        long value = db.insert(TABLE_MESSAGE, null,values);
-        Log.i("DATAFINAL", ("Chat added: " + String.valueOf(value)));
-
+        long value = db.insert(TABLE_MESSAGE, null, values);
         return value != -1;
     }
-
 
 
     /* Retrieve all the messages exchanged between sender_id and receiver_id */

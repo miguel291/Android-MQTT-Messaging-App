@@ -23,6 +23,8 @@ public class ConversationViewModel extends ViewModel {
         messages.setValue(newMessages);
     }
 
+
+
     public User getLoggedInUser() {
         return loggedInUser;
     }
@@ -67,5 +69,7 @@ public class ConversationViewModel extends ViewModel {
     public LiveData<ArrayList<Message>> getMessages() {
         return messages;
     }
+
+
 
 }
