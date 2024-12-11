@@ -110,32 +110,33 @@ public class DatabaseFunctions {
 
 
     // Retrieve all chats (only the users list) for a specific user (the logged one)
-    public ArrayList<User> getChats(String loggedUser) {
+    // Key changes in database query consistency.
+    public ArrayList<User> getChats(String loggedUserId) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String query = "SELECT DISTINCT CASE " +
+                "WHEN " + COLUMN_CHAT_SENDER + " = ? THEN " + COLUMN_CHAT_RECEIVER + " " +
+                "WHEN " + COLUMN_CHAT_RECEIVER + " = ? THEN " + COLUMN_CHAT_SENDER + " " +
+                "END AS contact " +
+                "FROM " + TABLE_MESSAGE + " " +
+                "WHERE " + COLUMN_CHAT_SENDER + " = ? OR " + COLUMN_CHAT_RECEIVER + " = ?";
 
-        // Query to fetch distinct users that have at least one message exchange with the logged user.
-        String query = "SELECT DISTINCT CASE WHEN " + COLUMN_CHAT_SENDER + " = ? THEN " + COLUMN_CHAT_RECEIVER
-                + " ELSE " + COLUMN_CHAT_SENDER
-                + " END AS contact FROM " + TABLE_MESSAGE
-                + " WHERE " + COLUMN_CHAT_SENDER + " = ? OR " + COLUMN_CHAT_RECEIVER + " = ?;";
-
-        ArrayList<User> usersContacted = new ArrayList<>();
-        Cursor cursor = db.rawQuery(query, new String[] { loggedUser, loggedUser, loggedUser });
+        ArrayList<User> contactedUsers = new ArrayList<>();
+        Cursor cursor = db.rawQuery(query, new String[]{loggedUserId, loggedUserId, loggedUserId, loggedUserId});
 
         if (cursor.moveToFirst()) {
             do {
                 String contactId = cursor.getString(cursor.getColumnIndexOrThrow("contact"));
-                // Create a new User object. Adjust the User constructor as needed.
-                usersContacted.add(new User(contactId));
+                contactedUsers.add(new User(contactId));
             } while (cursor.moveToNext());
         }
 
         cursor.close();
         db.close();
 
-        // At this point, usersContacted is already distinct due to the DISTINCT keyword in the query.
-        return usersContacted;
+        return contactedUsers;
     }
+
+
 
 
     /* Retrieve all messages where user_id is sender or receiver */

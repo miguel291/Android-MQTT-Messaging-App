@@ -6,6 +6,8 @@
     <string name="action_arduino_conf">Open Arduino configuration</string>
     <string name="action_logout">Logout</string>
     <string name="arduino_conf_fragment_text">dddd</string>
+    <string name="user_icon">User Profile Icon</string>
+
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

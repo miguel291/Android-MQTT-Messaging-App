@@ -42,7 +42,9 @@ public class ChatFragment extends Fragment {
 
         if (getArguments() != null) {
             chat = (Chat) getArguments().getSerializable(ARG_CHAT);
-            receiver = chat.getReceiver().getId();
+            if (chat != null && chat.getReceiver() != null) {
+                receiver = chat.getReceiver().getId();
+            }
         }
     }
 
@@ -52,14 +54,18 @@ public class ChatFragment extends Fragment {
 
         // Set up RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.conversationList);
-        MessageAdapter adapter = new MessageAdapter(new ArrayList<>());
+        ArrayList<Message> initialMessages = chat.getMessagesLiveData().getValue();
+        if (initialMessages == null) {
+            initialMessages = new ArrayList<>();
+        }
+        MessageAdapter adapter = new MessageAdapter(initialMessages, chat.getLoggedUser().getId());
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         // Observe changes to LiveData
         chat.getMessagesLiveData().observe(getViewLifecycleOwner(), newMessages -> {
             adapter.updateMessages(newMessages);
-            recyclerView.scrollToPosition(newMessages.size() - 1); // Scroll to the latest message
+            recyclerView.scrollToPosition(newMessages.size() - 1);
         });
 
         // Set up Toolbar
@@ -73,10 +79,7 @@ public class ChatFragment extends Fragment {
                 activity.getSupportActionBar().setTitle(chat.getReceiver().getId());
             }
 
-            // Add navigation click listener to handle back action
-            toolbar.setNavigationOnClickListener(v -> {
-                requireActivity().getSupportFragmentManager().popBackStack();
-            });
+            toolbar.setNavigationOnClickListener(v -> requireActivity().getSupportFragmentManager().popBackStack());
         }
 
         // Initialize message input and send button
@@ -87,11 +90,6 @@ public class ChatFragment extends Fragment {
         return view;
     }
 
-
-
-    /**
-     * Sends a message and updates the chat's messages list.
-     */
     private void sendMessage() {
         String messageText = messageInput.getText().toString().trim();
 
@@ -100,26 +98,24 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        int messageId = chat.getChatSize() + 1; // Generate a unique message ID
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        if (chat.getLoggedUser() == null || chat.getReceiver() == null) {
+            Toast.makeText(requireContext(), "Chat information is missing.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-        // Create a new Message object
+        int messageId = chat.getChatSize() + 1;
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
         Message newMessage = new Message(messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, timestamp);
 
-        // Save the message to the database
         if (!((MainActivity) requireActivity()).createMessage(messageText, chat.getLoggedUser().getId(), chat.getReceiver().getId())) {
             Toast.makeText(requireContext(), "Message not sent", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Update LiveData for messages
         ArrayList<Message> updatedMessages = new ArrayList<>(chat.getMessagesLiveData().getValue());
         updatedMessages.add(newMessage);
         chat.getMessagesLiveData().setValue(updatedMessages);
 
-        // Clear the input field
         messageInput.setText("");
     }
-
-
 }

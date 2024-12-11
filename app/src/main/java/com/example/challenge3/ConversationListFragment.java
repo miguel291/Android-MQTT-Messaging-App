@@ -59,23 +59,6 @@ public class ConversationListFragment extends Fragment {
             activity.getSupportActionBar().setTitle("Chat List"); // Set toolbar title
         }
 
-        loadViewModel();
-        return view;
-    }
-
-
-    @Override
-    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
-
-        // Set up the RecyclerView
-        recyclerView = view.findViewById(R.id.chatList);
-        Adapter adapter = new Adapter(new ArrayList<>(), this::openConversation, this::showDeleteDialog);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
-
-
-
         // Menu setup
         requireActivity().addMenuProvider(new MenuProvider() {
             @Override
@@ -90,12 +73,59 @@ public class ConversationListFragment extends Fragment {
                 if (id == R.id.arduinoConfigButton) {
                     ((MainActivity) requireActivity()).showArduinoConf();
                 } else if (id == R.id.action_add_chat) {
-                        showCustomDialog();
+                    showCustomDialog();
                 }
                 return true;
             }
         }, getViewLifecycleOwner());
+        loadViewModel();
+        return view;
     }
+
+
+
+
+
+
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+
+        // Get the logged-in user directly from MainActivity
+        final User loggedUser = ((MainActivity) requireActivity()).getLoggedUser();
+
+        // Check if loggedUser is not null
+        if (loggedUser == null) {
+            Toast.makeText(requireContext(), "No user is logged in", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Retrieve the list of users contacted by the logged user
+        ArrayList<User> contactedUsers = ((MainActivity) requireActivity()).databaseFinal.getChats(loggedUser.getId());
+
+        Adapter adapter = new Adapter(contactedUsers, user -> {
+            if (user != null) {
+                Chat chat = new Chat(1, loggedUser, user); // Create Chat object dynamically
+                openConversation(chat); // Pass the Chat object to openConversation
+            }
+        }, this::showDeleteDialog);
+
+
+        recyclerView = view.findViewById(R.id.chatList);
+
+        if (contactedUsers.isEmpty()) {
+            recyclerView.setVisibility(View.GONE); // Hide RecyclerView if empty
+            createToast("No conversations found. Add a new chat!");
+        } else {
+            recyclerView.setVisibility(View.VISIBLE);
+            recyclerView.setAdapter(adapter);
+            recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+        }
+
+    }
+
+
+
 
     public void showCustomDialog() {
 
