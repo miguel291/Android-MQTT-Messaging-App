@@ -7,6 +7,7 @@ import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_RECEIVER;
 import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_SENDER;
 import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP;
 import static com.example.challenge3.DatabaseOpenHelper.COLUMN_MESSAGE_ID;
+import static com.example.challenge3.DatabaseOpenHelper.COLUMN_USER_USERNAME;
 import static com.example.challenge3.DatabaseOpenHelper.TABLE_MESSAGE;
 import static com.example.challenge3.DatabaseOpenHelper.TABLE_USER;
 
@@ -40,7 +41,7 @@ public class DatabaseFunctions {
 
         // create object
         ContentValues values = new ContentValues();
-        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, username);
+        values.put(COLUMN_USER_USERNAME, username);
 
         // insert user
         long value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
@@ -55,7 +56,7 @@ public class DatabaseFunctions {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
         // query for check user
-        String query = "SELECT * FROM " + DatabaseOpenHelper.TABLE_USER + " WHERE " + DatabaseOpenHelper.COLUMN_USER_USERNAME + " = ?";
+        String query = "SELECT * FROM " + DatabaseOpenHelper.TABLE_USER + " WHERE " + COLUMN_USER_USERNAME + " = ?";
         Cursor cursor = db.rawQuery(query, new String[]{String.valueOf(username)});
 
         // get number of results
@@ -66,21 +67,24 @@ public class DatabaseFunctions {
         return (nrRows > 0);
     }
 
-    public boolean createMessage(String content, String sender_id, String receiver_id) {
+    public boolean createMessage(String content, String senderId, String receiverId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        // Generate timestamp
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        if (!userExists(senderId) || !userExists(receiverId)) {
+            Log.e("DatabaseFunctions", "Sender or Receiver does not exist in the database.");
+            return false;
+        }
 
         ContentValues values = new ContentValues();
-        values.put(DatabaseOpenHelper.COLUMN_CHAT_CONTENT, content);
-        values.put(DatabaseOpenHelper.COLUMN_CHAT_SENDER, sender_id);
-        values.put(DatabaseOpenHelper.COLUMN_CHAT_RECEIVER, receiver_id);
-        values.put(DatabaseOpenHelper.COLUMN_CHAT_TIMESTAMP, timestamp);
+        values.put(COLUMN_CHAT_CONTENT, content);
+        values.put(COLUMN_CHAT_SENDER, senderId);
+        values.put(COLUMN_CHAT_RECEIVER, receiverId);
+        values.put(COLUMN_CHAT_TIMESTAMP, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
 
-        long value = db.insert(TABLE_MESSAGE, null, values);
-        return value != -1;
+        long result = db.insert(TABLE_MESSAGE, null, values);
+        return result != -1;
     }
+
 
 
     /* Retrieve all the messages exchanged between sender_id and receiver_id */
@@ -207,7 +211,7 @@ public class DatabaseFunctions {
         for (User user : usersToInsert) {
             // create object
             ContentValues values = new ContentValues();
-            values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, user.getId());
+            values.put(COLUMN_USER_USERNAME, user.getId());
             // insert user
             long value = db.insert(DatabaseOpenHelper.TABLE_USER, null, values);
             Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
@@ -230,18 +234,27 @@ public class DatabaseFunctions {
         return users;
     }
 
-    public void insertUser(User user){
-        // get db instance
+    public void insertUser(User user) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        // create object
-        ContentValues values = new ContentValues();
-        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, user.getId());
-        // insert user
-        long value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
-        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
+        // Check if the user already exists
+        if (userExists(user.getId())) {
+            Log.i("DatabaseFunctions", "User already exists: " + user.getId());
+            return; // Skip inserting duplicate
+        }
 
+        // Insert new user
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_USER_USERNAME, user.getId());
+
+        long result = db.insert(DatabaseOpenHelper.TABLE_USER, null, values);
+        if (result == -1) {
+            Log.e("DatabaseFunctions", "Failed to insert user: " + user.getId());
+        } else {
+            Log.i("DatabaseFunctions", "User added: " + user.getId());
+        }
     }
+
 
     public ArrayList<Message> getAllMessages() {
         // get db instance
@@ -266,31 +279,23 @@ public class DatabaseFunctions {
     }
 
     /* Insert 3 random users into the DB*/
-    public void randomUsers(){
-        // get db instance
+    public void randomUsers() {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        // create object
-        ContentValues values = new ContentValues();
-        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, "user1");
+        String[] usernames = {"user1", "user2", "user3"};
 
-        // insert user
-        long value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
-        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
-
-        values = new ContentValues();
-        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, "user2");
-        value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
-
-        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
-
-        values = new ContentValues();
-        values.put(DatabaseOpenHelper.COLUMN_USER_USERNAME, "user3");
-        value = db.insert(DatabaseOpenHelper.TABLE_USER, null,values);
-
-        Log.i("DATAFINAL", ("User added: " + String.valueOf(value)));
-
+        for (String username : usernames) {
+            if (!userExists(username)) {
+                ContentValues values = new ContentValues();
+                values.put(COLUMN_USER_USERNAME, username);
+                long result = db.insert(TABLE_USER, null, values);
+                if (result != -1) {
+                    Log.i("DatabaseFunctions", "User added: " + username);
+                }
+            }
+        }
     }
+
 
     public void randomMessages(){
         // NEED IMPLEMENTATION

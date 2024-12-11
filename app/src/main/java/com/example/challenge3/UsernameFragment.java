@@ -75,6 +75,8 @@ public class UsernameFragment extends Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("USER_ID", user.getId());
         editor.apply();
+        MainActivity activity = (MainActivity) requireActivity();
+        activity.getViewModel().setLoggedInUser(user);
     }
 
     /*

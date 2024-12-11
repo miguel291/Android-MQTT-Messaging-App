@@ -23,8 +23,6 @@ public class ConversationViewModel extends ViewModel {
         messages.setValue(newMessages);
     }
 
-
-
     public User getLoggedInUser() {
         return loggedInUser;
     }

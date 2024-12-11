@@ -29,8 +29,12 @@ public class Chat implements Serializable {
     }
 
     public MutableLiveData<ArrayList<Message>> getMessagesLiveData() {
+        if (messages == null) {
+            messages = new MutableLiveData<>(new ArrayList<>());
+        }
         return messages;
     }
+
 
     public void setMessages(ArrayList<Message> messages) {
         this.messages.setValue(messages);

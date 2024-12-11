@@ -25,25 +25,19 @@ public class MainActivity extends AppCompatActivity {
     ConversationViewModel viewModel;
     SQLiteDatabase database;
     DatabaseFunctions databaseFinal;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        EdgeToEdge.enable(this); // Enable edge-to-edge display
+        EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
-        // Initialize database helper and writable database
         databaseFinal = new DatabaseFunctions(this);
-
-        // Initialize ViewModel
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
 
-        // Set up the toolbar
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
 
-        // Apply window insets for edge-to-edge display
         View rootView = findViewById(R.id.main);
         ViewCompat.setOnApplyWindowInsetsListener(rootView, (v, insets) -> {
             Insets systemInsets = insets.getInsets(WindowInsetsCompat.Type.systemBars() | WindowInsetsCompat.Type.ime());
@@ -51,34 +45,34 @@ public class MainActivity extends AppCompatActivity {
             return insets;
         });
 
-        /* Load data from DB to objects (viewModel) */
-        loadUserFromDB();
-        loadMessagesFromDB();
+        // Load data from DB into ViewModel
+        loadMessagesFromDB(); // Messages should not depend on logged user
+        loadUserFromDB(); // Load existing users
 
-        // Check if the user is already logged in, if true gets its id
+        // Check if the user is already logged in
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         String userId = sharedPreferences.getString("USER_ID", null);
+        Log.d("MainActivity", "USER_ID from SharedPreferences: " + userId);
 
-        // if there is already a user id in the preferences
         if (userId != null) {
-            User newUser = new User(userId);
-            viewModel.addUser(newUser);
-            viewModel.setLoggedInUser(newUser);
+            User loggedUser = new User(userId);
 
-            databaseFinal.insertUser(newUser);
+            if (!databaseFinal.userExists(userId)) {
+                databaseFinal.insertUser(loggedUser);
+            }
 
-            // Load Chats for the logged user
-            viewModel.setContactedUsers(databaseFinal.getChats(newUser.getId()));
+            viewModel.addUser(loggedUser);
+            viewModel.setLoggedInUser(loggedUser);
+            Log.d("MainActivity", "Logged-in user: " + loggedUser.getId());
 
-            createToast("Welcome " + userId);
-
+            viewModel.setContactedUsers(databaseFinal.getChats(userId));
             showChatList();
-        } else{
-            // Show user form if the app is launched for the first time
-            createToast("Welcome, please login (insert your alphanumeric code)");
+        } else {
+            Log.d("MainActivity", "No logged-in user found. Showing login form.");
             showUserForm();
         }
     }
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -137,10 +131,29 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Load users from db to viewmodel */
-    public void loadUserFromDB(){
-        databaseFinal.randomUsers(); // create random users
+    /* Load users from db to ViewModel */
+    public void loadUserFromDB() {
+        SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
+        String userId = sharedPreferences.getString("USER_ID", null);
+
+        // Create random users if no users exist
+        if (databaseFinal.getAllUsers().isEmpty()) {
+            databaseFinal.randomUsers();
+        }
+
+        // Retrieve all users from the database and set them in the ViewModel
         viewModel.setUsers(databaseFinal.getAllUsers());
+
+        // Check if a logged user exists
+        if (userId != null && databaseFinal.userExists(userId)) {
+            User loggedUser = new User(userId);
+            viewModel.setLoggedInUser(loggedUser);
+        } else {
+            viewModel.setLoggedInUser(null); // No logged user found
+        }
     }
+
+
 
     public void loadMessagesFromDB(){
         databaseFinal.randomMessages(); // create random messages
@@ -155,27 +168,6 @@ public class MainActivity extends AppCompatActivity {
 
     public User getLoggedUser() {
         return viewModel.getLoggedInUser();
-    }
-
-    public void setLoggedInUser() {
-        if (viewModel != null) {
-            SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-            String userId = sharedPreferences.getString("USER_ID", null);
-            if (userId != null) {
-                /*User loggedInUser = dbHelper.getUserById(userId);
-                viewModel.setLoggedInUser(loggedInUser);*/
-            }
-        }
-        else{
-            Log.i("ERROR", "Logged in user not found, DB loading failed");
-        }
-    }
-
-    private void createToast(CharSequence text){
-        Context context = this.getBaseContext();
-        int duration = Toast.LENGTH_SHORT;
-        Toast toast = Toast.makeText(context, text, duration);
-        toast.show();
     }
 
 

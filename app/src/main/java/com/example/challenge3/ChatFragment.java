@@ -10,6 +10,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -100,6 +101,7 @@ public class ChatFragment extends Fragment {
 
         if (chat.getLoggedUser() == null || chat.getReceiver() == null) {
             Toast.makeText(requireContext(), "Chat information is missing.", Toast.LENGTH_SHORT).show();
+            Log.e("ChatFragment", "LoggedUser or Receiver is null.");
             return;
         }
 
@@ -112,10 +114,15 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        ArrayList<Message> updatedMessages = new ArrayList<>(chat.getMessagesLiveData().getValue());
+        // Update LiveData for messages
+        ArrayList<Message> updatedMessages = chat.getMessagesLiveData().getValue();
+        if (updatedMessages == null) {
+            updatedMessages = new ArrayList<>();
+        }
         updatedMessages.add(newMessage);
         chat.getMessagesLiveData().setValue(updatedMessages);
 
+        // Clear the input field
         messageInput.setText("");
     }
 }
