@@ -1,6 +1,5 @@
 package com.example.challenge3;
 
-import android.content.Context;
 import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
@@ -16,9 +15,6 @@ import androidx.lifecycle.ViewModelProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.Toast;
-
-import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -117,6 +113,7 @@ public class MainActivity extends AppCompatActivity {
         Chat page
     */
     public void showChatFragment(Chat chat) {
+        databaseFinal.createUser(chat.getReceiver().getId());
         findViewById(R.id.toolbar).setVisibility(View.GONE); // Show toolbar or customize as needed
         getSupportFragmentManager()
                 .beginTransaction()

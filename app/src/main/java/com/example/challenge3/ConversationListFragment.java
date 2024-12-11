@@ -1,7 +1,6 @@
 package com.example.challenge3;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -42,7 +41,8 @@ public class ConversationListFragment extends Fragment {
     }
 
     public void loadViewModel() {
-        viewModel = new ViewModelProvider(requireActivity()).get(ConversationViewModel.class);
+        viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
+
     }
 
     @Override
@@ -120,16 +120,12 @@ public class ConversationListFragment extends Fragment {
         Button confirmButton = dialog.findViewById(R.id.buttonDialog);
 
         confirmButton.setOnClickListener(v -> {
+            User loggedUser = viewModel.getLoggedInUser();
             String chatWith = usernameET.getText().toString();
             MainActivity mainActivity = (MainActivity) requireActivity();
 
-            if (mainActivity.userExists(chatWith)) {
-                User loggedUser = viewModel.getLoggedInUser();
-                if (loggedUser == null) {
-                    Toast.makeText(requireContext(), "Error: No logged user.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                mainActivity.showChatFragment(new Chat(1, loggedUser, mainActivity.getUserById(chatWith)));
+            if ( (!chatWith.isEmpty()) && (!chatWith.equals(loggedUser.getId())) ) {
+                mainActivity.showChatFragment(new Chat(1, loggedUser, new User(chatWith)));
                 dialog.dismiss();
             } else {
                 usernameET.setError("This username does not exist.");

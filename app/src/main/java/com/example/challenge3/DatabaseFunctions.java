@@ -1,7 +1,5 @@
 package com.example.challenge3;
 
-import static android.icu.text.ListFormatter.Type.AND;
-import static android.icu.text.ListFormatter.Type.OR;
 import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_CONTENT;
 import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_RECEIVER;
 import static com.example.challenge3.DatabaseOpenHelper.COLUMN_CHAT_SENDER;
@@ -16,7 +14,6 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.util.Log;
-import java.sql.Timestamp;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -35,7 +32,7 @@ public class DatabaseFunctions {
     /*
         Insert the user in the database
      */
-    public void loginUser(String username){
+    public void createUser(String username){
         // get db instance
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
