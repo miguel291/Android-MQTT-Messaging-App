@@ -173,5 +173,10 @@ public class MainActivity extends AppCompatActivity {
     public ArrayList<User> getUserChats(String userID){
         return databaseFinal.getChats(userID);
     }
+
+    public void updateChatDB(Message newMessage){
+        databaseFinal.insertMessage(newMessage);
+        loadMessagesFromDB();
+    }
 }
 

@@ -1,6 +1,7 @@
 
 package com.example.challenge3;
 
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -58,10 +59,15 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
     }
 
     public void updateMessages(List<Message> newMessages) {
-        this.messages.clear();
-        this.messages.addAll(newMessages);
-        notifyDataSetChanged(); // Notify full data change to ensure updates
+        if (newMessages != null) {
+            Log.d("MessageAdapter", "Updating messages with: " + newMessages.size() + " new messages.");
+            this.messages.clear();
+            this.messages.addAll(newMessages);
+            notifyDataSetChanged();
+        }
     }
+
+
 
     public static class MessageViewHolder extends RecyclerView.ViewHolder {
         private final TextView messageText;

@@ -33,8 +33,6 @@ public class ChatFragment extends Fragment {
 
     int messageId = 0;
 
-
-
     public void loadViewModel() {
         viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
     }
@@ -42,39 +40,45 @@ public class ChatFragment extends Fragment {
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+
         // Set up RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.conversationList);
-
-        //ArrayList<Message> initialMessages = chat.getMessagesLiveData().getValue();
-
-        ArrayList<Message> initialMessages = viewModel.getMessages().getValue();
-
-        Log.d("ChatFragment", "Chat received: " + chat.getId());
-
-
-        if (initialMessages == null) {
-            initialMessages = new ArrayList<>();
-        }
-
-        Log.d("ChatFragment", "Initial Messages: " + initialMessages);
-
-        MessageAdapter adapter = new MessageAdapter(initialMessages, chat.getLoggedUser().getId());
-        recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
-        // Observe changes to LiveData
+        // Initialize adapter with an empty list
+        MessageAdapter adapter = new MessageAdapter(new ArrayList<>(), chat.getLoggedUser().getId());
+        recyclerView.setAdapter(adapter);
+
+        // Maintain a single list to store all messages
+        ArrayList<Message> allMessages = new ArrayList<>();
+
+        // Load initial messages
+        //ArrayList<Message> initialMessages = viewModel.getMessages().getValue();
+        ArrayList<Message> initialMessages = viewModel.getMessagesBetweenUsers(chat.getLoggedUser().getId(),
+                chat.getReceiver().getId());
+
+        if (initialMessages != null && !initialMessages.isEmpty()) {
+            allMessages.addAll(initialMessages); // Add initial messages to allMessages
+            adapter.updateMessages(allMessages); // Update the adapter
+            recyclerView.scrollToPosition(allMessages.size() - 1); // Scroll to the last message
+        }
+
+        // Observe LiveData for new messages
         chat.getMessagesLiveData().observe(getViewLifecycleOwner(), newMessages -> {
-            adapter.updateMessages(newMessages);
-            recyclerView.scrollToPosition(newMessages.size() - 1);
+            if (newMessages != null && !newMessages.isEmpty()) {
+                Log.d("ChatFragment", "New Messages received: " + newMessages.size());
+                allMessages.addAll(newMessages); // Append new messages to allMessages
+                adapter.updateMessages(allMessages); // Update the adapter
+                recyclerView.scrollToPosition(allMessages.size() - 1); // Scroll to the last message
+            }
         });
 
-        // Set up Toolbar
+        // Toolbar setup
         Toolbar toolbar = view.findViewById(R.id.toolbar);
         AppCompatActivity activity = (AppCompatActivity) requireActivity();
         if (toolbar != null) {
@@ -94,6 +98,8 @@ public class ChatFragment extends Fragment {
         sendButton.setOnClickListener(v -> sendMessage());
     }
 
+
+
     @Override
    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
@@ -107,12 +113,11 @@ public class ChatFragment extends Fragment {
         return view;
     }
 
+
+
+
     private void sendMessage() {
         String messageText = messageInput.getText().toString().trim();
-
-        Log.i("ChatFragment", "Sending message: " + messageText);
-        Log.i("ChatFragment", "LoggedUser: " + (chat.getLoggedUser() != null ? chat.getLoggedUser().getId() : "null"));
-        Log.i("ChatFragment", "Receiver: " + (chat.getReceiver() != null ? chat.getReceiver().getId() : "null"));
 
         if (messageText.isEmpty()) {
             Toast.makeText(requireContext(), "Message cannot be empty", Toast.LENGTH_SHORT).show();
@@ -121,43 +126,45 @@ public class ChatFragment extends Fragment {
 
         if (chat.getLoggedUser() == null || chat.getReceiver() == null) {
             Toast.makeText(requireContext(), "Chat information is missing.", Toast.LENGTH_SHORT).show();
-            Log.e("ChatFragment", "LoggedUser or Receiver is null.");
             return;
         }
 
-
-        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
+        // Create a new message
+        String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date());
         Message newMessage = new Message(messageId, new User(chat.getLoggedUser().getId()), new User(chat.getReceiver().getId()), messageText, timestamp);
         messageId++;
 
-        if (!((MainActivity) requireActivity()).createMessage(messageText, chat.getLoggedUser().getId(), chat.getReceiver().getId())) {
+        // Simulate message sending (e.g., via MainActivity)
+        boolean messageSent = ((MainActivity) requireActivity()).createMessage(
+                messageText,
+                chat.getLoggedUser().getId(),
+                chat.getReceiver().getId()
+        );
+
+        if (!messageSent) {
             Toast.makeText(requireContext(), "Message not sent", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Update LiveData for messages
-        ArrayList<Message> updatedMessages = chat.getMessagesLiveData().getValue();
-        if (updatedMessages == null) {
-            updatedMessages = new ArrayList<>();
-        }
-        updatedMessages.add(newMessage);
-        chat.getMessagesLiveData().setValue(updatedMessages);
-
-        // Scroll to the last message
-        RecyclerView recyclerView = requireView().findViewById(R.id.conversationList);
-        recyclerView.scrollToPosition(updatedMessages.size() - 1);
-
-        // Update the adapter
-        MessageAdapter adapter = (MessageAdapter) recyclerView.getAdapter();
-        if (adapter != null) {
-            adapter.updateMessages(updatedMessages);
+        // Retrieve existing messages and add the new one
+        ArrayList<Message> currentMessages = chat.getMessagesLiveData().getValue();
+        if (currentMessages == null) {
+            currentMessages = new ArrayList<>();
         }
 
-        ((MainActivity) requireActivity()).createMessage(newMessage.getContent(),
-                                                            viewModel.getLoggedInUser().getId(),
-                                                            viewModel.getChattingWithUser().getId());
+        // Add the new message to the current list
+        currentMessages.add(newMessage);
+
+        // Update LiveData
+        chat.getMessagesLiveData().setValue(new ArrayList<>(currentMessages)); // Ensure the LiveData is updated with a new instance
+
+        MainActivity mainActivity = (MainActivity) requireActivity();
+        mainActivity.updateChatDB(newMessage);
 
         // Clear the input field
         messageInput.setText("");
+
+        Log.d("ChatFragment", "Message sent: " + messageText);
+        Log.d("ChatFragment", "Updated message list size: " + currentMessages.size());
     }
 }

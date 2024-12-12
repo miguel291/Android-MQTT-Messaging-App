@@ -7,7 +7,7 @@ import java.util.ArrayList;
 
 public class Chat implements Serializable {
     private int id;
-    private User loggedUser; //it's the sender
+    private User loggedUser; // The sender
     private User receiver;
     private MutableLiveData<ArrayList<Message>> messages;
 
@@ -16,7 +16,7 @@ public class Chat implements Serializable {
         this.id = id;
         this.loggedUser = loggedUser;
         this.receiver = receiver;
-        this.messages = new MutableLiveData<>(new ArrayList<>()); // Initialize with an empty list
+        this.messages = new MutableLiveData<>(new ArrayList<>()); // Initialize with a new empty list
     }
 
     // Getters and Setters
@@ -35,9 +35,8 @@ public class Chat implements Serializable {
         return messages;
     }
 
-
     public void setMessages(ArrayList<Message> messages) {
-        this.messages.setValue(messages);
+        this.messages.setValue(new ArrayList<>(messages)); // Use a new list to trigger LiveData observers
     }
 
     public User getLoggedUser() {
@@ -50,9 +49,11 @@ public class Chat implements Serializable {
 
     public void addMessage(Message message) {
         ArrayList<Message> currentMessages = this.messages.getValue();
-        if (currentMessages != null) {
-            currentMessages.add(message);
+        if (currentMessages == null) {
+            currentMessages = new ArrayList<>();
         }
+        currentMessages.add(message);
+        this.messages.setValue(new ArrayList<>(currentMessages)); // Ensure LiveData updates correctly
     }
 
     public boolean isMessageFromSender(Message message) {
@@ -60,8 +61,8 @@ public class Chat implements Serializable {
     }
 
     public int getChatSize() {
-        ArrayList<Message> currentMessages = messages.getValue(); // Retrieve the current list
-        return currentMessages != null ? currentMessages.size() : 0; // Return size or 0 if the list is null
+        ArrayList<Message> currentMessages = messages.getValue();
+        return currentMessages != null ? currentMessages.size() : 0;
     }
-
 }
+

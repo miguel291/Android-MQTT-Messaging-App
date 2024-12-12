@@ -93,4 +93,17 @@ public class ConversationViewModel extends ViewModel {
     }
 
 
+    public ArrayList<Message> getMessagesBetweenUsers(String userId1, String userId2) {
+        ArrayList<Message> messagesList = new ArrayList<>();
+
+        for (Message message : messages.getValue()) {
+            if ((message.getSender().getId().equals(userId1) && message.getReceiver().getId().equals(userId2)) ||
+                    (message.getSender().getId().equals(userId2) && message.getReceiver().getId().equals(userId1))) {
+                messagesList.add(message);
+            }
+        }
+        return messagesList;
+    }
+
+
 }

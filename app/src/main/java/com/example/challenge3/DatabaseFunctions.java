@@ -83,6 +83,23 @@ public class DatabaseFunctions {
     }
 
 
+    public void insertMessage(Message messageToInsert){
+        // get db instance
+        SQLiteDatabase db = dbHelper.getWritableDatabase();
+
+        // create object
+        ContentValues values = new ContentValues();
+        values.put(COLUMN_CHAT_SENDER, messageToInsert.getSender().getId());
+        values.put(COLUMN_CHAT_RECEIVER, messageToInsert.getReceiver().getId());
+        values.put(COLUMN_CHAT_CONTENT, messageToInsert.getContent());
+        values.put(COLUMN_CHAT_TIMESTAMP, messageToInsert.getTimestamp());
+
+        // insert user
+        long value = db.insert(TABLE_MESSAGE, null, values);
+        Log.i("DATAFINAL", ("Message added: " + String.valueOf(value)));
+
+    }
+
 
     /* Retrieve all the messages exchanged between sender_id and receiver_id */
     public ArrayList<Message> dynamicChatCreation(String senderId, String receiverId){
