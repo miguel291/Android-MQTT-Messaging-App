@@ -1,0 +1,16 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:padding="8dp">
+
+
+    <com.google.android.material.materialswitch.MaterialSwitch
+        android:id="@+id/arduinoUserNotificationsButton"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:checked="false"
+        app:trackTint="@color/LightBlue"
+        android:text="Username 1"/>
+</LinearLayout>

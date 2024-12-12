@@ -19,6 +19,7 @@ constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayo
 
 paho-android-service = { group = "org.eclipse.paho", name = "org.eclipse.paho.android.service", version = "1.1.1" }
 paho-mqttv3 = { group = "org.eclipse.paho", name = "org.eclipse.paho.client.mqttv3", version = "1.2.5" }
+localbroadcastmanager = { module = "androidx.localbroadcastmanager:localbroadcastmanager", version = "1.0.0" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

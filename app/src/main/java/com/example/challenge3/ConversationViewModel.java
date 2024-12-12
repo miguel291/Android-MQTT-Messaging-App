@@ -6,6 +6,7 @@ import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 public class ConversationViewModel extends ViewModel {
@@ -78,6 +79,14 @@ public class ConversationViewModel extends ViewModel {
             }
         }
         return null;
+    }
+
+    public ArrayList<User> getAllUsers() {
+        ArrayList<User> usersArrayList = new ArrayList<User>();
+        for (User user : users.getValue()) {
+            usersArrayList.add(user);
+        }
+        return usersArrayList;
     }
 
     public void addUser(User user){

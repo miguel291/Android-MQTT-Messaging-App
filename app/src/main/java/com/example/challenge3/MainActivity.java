@@ -1,11 +1,16 @@
 package com.example.challenge3;
 
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.NotificationCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -15,6 +20,10 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
+import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
+import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
 
     ConversationViewModel viewModel;
     DatabaseFunctions databaseFinal;
+    MQTTHelper mqttHelper;
 
 
     @Override
@@ -31,6 +41,7 @@ public class MainActivity extends AppCompatActivity {
         EdgeToEdge.enable(this);
         setContentView(R.layout.activity_main);
 
+        // Initialize database helper and writable database
         databaseFinal = new DatabaseFunctions(this);
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
 
@@ -99,6 +110,7 @@ public class MainActivity extends AppCompatActivity {
         Chat list page
     */
     public void showChatList(){
+        //connectToMqtt();
         findViewById(R.id.toolbar).setVisibility(View.GONE);
         getSupportFragmentManager()
                 .beginTransaction()
@@ -178,5 +190,35 @@ public class MainActivity extends AppCompatActivity {
     public void addUserToDB(User newUser){
         databaseFinal.insertUser(newUser);
     }
+
+    public void connectToMqtt(){
+        mqttHelper = new MQTTHelper(this, "clientId", "chatroom1");
+
+        // Set callback for handling MQTT events
+        mqttHelper.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                Log.d("MQTT", "Connected to: " + serverURI);
+            }
+
+            @Override
+            public void connectionLost(Throwable cause) {
+                Log.d("MQTT", "Connection lost: " + cause.getMessage());
+            }
+
+            @Override
+            public void messageArrived(String topic, MqttMessage message) {
+                Log.d("MQTT", "Message: " + message.toString());
+                // Handle the message (e.g., update UI)
+            }
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+                Log.d("MQTT", "Delivery complete");
+            }
+        });
+        // Connect to the broker
+        mqttHelper.connect();
+    }
+
 }
 

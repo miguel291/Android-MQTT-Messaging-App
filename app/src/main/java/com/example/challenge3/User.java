@@ -6,6 +6,7 @@ public class User {
     String id;
     ArrayList<Chat> ChatList;
 
+
     public User(String id) {
         this.id = id;
         this.ChatList = new ArrayList<>();

@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
 }
-
 android {
     namespace = "com.example.challenge3"
     compileSdk = 34
@@ -41,6 +40,10 @@ dependencies {
     androidTestImplementation(libs.espresso.core)
 
     /* MQTT DEPENDENCIES */
-    implementation(libs.paho.android.service)
+    //implementation(libs.paho.android.service)
     implementation(libs.paho.mqttv3)
+    implementation(libs.localbroadcastmanager)
+    implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.0.0")
+    implementation("com.github.hannesa2:paho.mqtt.android:3.3.5")
+
 }

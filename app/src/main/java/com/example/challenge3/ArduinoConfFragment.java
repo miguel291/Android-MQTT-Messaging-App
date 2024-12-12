@@ -27,6 +27,7 @@ import java.util.ArrayList;
 
 public class ArduinoConfFragment extends Fragment {
 
+    RecyclerView recyclerView;
     ConversationViewModel viewModel;
 
     public ArduinoConfFragment() {
@@ -39,6 +40,7 @@ public class ArduinoConfFragment extends Fragment {
     public void loadViewModel() {
         viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
     }
+
 
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
