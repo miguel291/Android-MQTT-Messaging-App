@@ -102,12 +102,7 @@ public class ConversationListFragment extends Fragment {
 
                 if (allMessages != null) {
                     // Filter messages exchanged with the selected user
-                    Log.i("DEBUGZAO", "tamanho: " + String.valueOf(allMessages.size()));
                     for (Message message : allMessages) {
-                        Log.i("DEBUGZAO", "vm: " + loggedUser.getId());
-                        Log.i("DEBUGZAO", "content: " + message.getContent());
-                        Log.i("DEBUGZAO", "message: " + message.getReceiver());
-                        Log.i("DEBUGZAO", "message: " + user.getId());
 
                         if ((message.getSender().equals(loggedUser.getId()) && message.getReceiver().equals(user.getId())) ||
                                 (message.getSender().equals(user.getId()) && message.getReceiver().equals(loggedUser.getId()))) {
@@ -117,8 +112,6 @@ public class ConversationListFragment extends Fragment {
                 }
 
                 // Create a new Chat object and set filtered messages
-                Log.i("DEBUGZAO", "message: " + loggedUser.getId());
-                Log.i("DEBUGZAO", "message: " + user.getId());
                 Chat chat = new Chat(1, loggedUser, user);
                 chat.setMessages(filteredMessages);
 
@@ -156,8 +149,6 @@ public class ConversationListFragment extends Fragment {
             MainActivity mainActivity = (MainActivity) requireActivity();
 
             if ( (!chatWith.isEmpty()) && (!chatWith.equals(loggedUser.getId())) ) {
-                Log.i("DEBUGZAO", "message: " + loggedUser.getId());
-                Log.i("DEBUGZAO", "message: " + chatWith);
 
                 dialog.dismiss();
                 mainActivity.showChatFragment(new Chat(1, loggedUser, new User(chatWith)));

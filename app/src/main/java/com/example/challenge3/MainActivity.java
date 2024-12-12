@@ -121,7 +121,8 @@ public class MainActivity extends AppCompatActivity {
     */
     public void showChatFragment(Chat chat) {
 
-        databaseFinal.createUser(chat.getReceiver().getId());
+        if(!userExists(chat.getLoggedUser().getId()))
+            databaseFinal.createUser(chat.getReceiver().getId());
         viewModel.setChattingWithUser(chat.getReceiver());
         viewModel.setCurrentChat(chat);
 
@@ -152,14 +153,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void loadMessagesFromDB(){
         ArrayList<Message> al = databaseFinal.getAllMessages();
-        for(Message m : al){
-            if(m.getReceiver() == null)
-                Log.i("DEBUGZAO-FINAL", "nullo");
-            else
-                Log.i("DEBUGZAO-FINAL", ("sender: " + m.getReceiver()));
-
-        }
-
         viewModel.setMessages(databaseFinal.getAllMessages());
     }
 
