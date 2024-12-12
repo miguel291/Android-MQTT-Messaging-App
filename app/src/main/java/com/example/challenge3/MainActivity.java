@@ -158,13 +158,8 @@ public class MainActivity extends AppCompatActivity {
         viewModel.setMessages(databaseFinal.getAllMessages());
     }
 
-
     public boolean userExists(String username){
         return databaseFinal.userExists(username);
-    }
-
-    public User getUserById(String id){
-        return viewModel.getUserById(id);
     }
 
     public boolean createMessage(String content, String sender_id, String receiver_id){
