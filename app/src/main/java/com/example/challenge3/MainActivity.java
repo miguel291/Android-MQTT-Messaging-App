@@ -50,7 +50,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("MainActivity", "USER_ID from SharedPreferences: " + userId);
 
         // Load data from DB into ViewModel
-        loadUserFromDB(userId); // Load existing users
+        loadUserFromDB(); // Load existing users
         loadMessagesFromDB(); // Messages should not depend on logged user
 
         if (userId != null) {
@@ -68,6 +68,7 @@ public class MainActivity extends AppCompatActivity {
             viewModel.setLoggedInUser(loggedUser);
             Log.d("MainActivity", "Logged-in user: " + loggedUser.getId());
 
+            /* This is the chat List*/
             viewModel.setContactedUsers(databaseFinal.getChats(userId));
             showChatList();
         } else {
@@ -141,7 +142,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     /* Load users from db to ViewModel */
-    public void loadUserFromDB(String userId) {
+    public void loadUserFromDB() {
 
         // Create random users if no users exist
         if (databaseFinal.getAllUsers().isEmpty()) {
@@ -177,6 +178,10 @@ public class MainActivity extends AppCompatActivity {
     public void updateChatDB(Message newMessage){
         databaseFinal.insertMessage(newMessage);
         loadMessagesFromDB();
+    }
+
+    public void addUserToDB(User newUser){
+        databaseFinal.insertUser(newUser);
     }
 }
 

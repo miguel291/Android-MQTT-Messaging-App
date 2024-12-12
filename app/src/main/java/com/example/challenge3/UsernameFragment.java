@@ -34,13 +34,12 @@ public class UsernameFragment extends Fragment {
             activityCompat.getSupportActionBar().setTitle("Chat"); // Set toolbar title
         }
 
-
         // Username input and save button
         editTextId = view.findViewById(R.id.editTextId);
         Button loginBtn = view.findViewById(R.id.btnLogin);
 
         // Get app preferences
-        sharedPreferences = requireContext().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
+       sharedPreferences = requireContext().getSharedPreferences("AppPreferences", Context.MODE_PRIVATE);
 
         // Set the button's click listener
         loginBtn.setOnClickListener(v -> {
@@ -77,6 +76,7 @@ public class UsernameFragment extends Fragment {
         editor.apply();
         MainActivity activity = (MainActivity) requireActivity();
         activity.getViewModel().setLoggedInUser(user);
+        activity.addUserToDB(user);
     }
 
     /*
