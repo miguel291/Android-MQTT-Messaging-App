@@ -72,7 +72,9 @@ public class ChatFragment extends Fragment {
         chat.getMessagesLiveData().observe(getViewLifecycleOwner(), newMessages -> {
             if (newMessages != null && !newMessages.isEmpty()) {
                 Log.d("ChatFragment", "New Messages received: " + newMessages.size());
-                allMessages.addAll(newMessages); // Append new messages to allMessages
+
+                allMessages.add(newMessages.get(newMessages.size()-1));
+
                 adapter.updateMessages(allMessages); // Update the adapter
                 recyclerView.scrollToPosition(allMessages.size() - 1); // Scroll to the last message
             }
