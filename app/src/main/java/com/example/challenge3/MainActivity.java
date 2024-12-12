@@ -121,8 +121,9 @@ public class MainActivity extends AppCompatActivity {
     */
     public void showChatFragment(Chat chat) {
 
-        if(!userExists(chat.getLoggedUser().getId()))
+        if(!userExists(chat.getReceiver().getId()))
             databaseFinal.createUser(chat.getReceiver().getId());
+
         viewModel.setChattingWithUser(chat.getReceiver());
         viewModel.setCurrentChat(chat);
 

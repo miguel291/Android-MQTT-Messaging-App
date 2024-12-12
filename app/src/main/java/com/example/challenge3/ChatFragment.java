@@ -46,25 +46,24 @@ public class ChatFragment extends Fragment {
     }
 
     @Override
-   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_chat, container, false);
-        loadViewModel();
-
-        chat = viewModel.getCurrentChat();
-        if (chat != null && chat.getReceiver() != null) {
-            receiverId = chat.getReceiver().getId();
-        }
-
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
         // Set up RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.conversationList);
-        ArrayList<Message> initialMessages = chat.getMessagesLiveData().getValue();
+
+        //ArrayList<Message> initialMessages = chat.getMessagesLiveData().getValue();
+
+        ArrayList<Message> initialMessages = viewModel.getMessages().getValue();
+
         Log.d("ChatFragment", "Chat received: " + chat.getId());
 
-        Log.d("ChatFragment", "Initial Messages: " + initialMessages);
 
         if (initialMessages == null) {
             initialMessages = new ArrayList<>();
         }
+
+        Log.d("ChatFragment", "Initial Messages: " + initialMessages);
+
         MessageAdapter adapter = new MessageAdapter(initialMessages, chat.getLoggedUser().getId());
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
@@ -93,6 +92,17 @@ public class ChatFragment extends Fragment {
         messageInput = view.findViewById(R.id.messageInput);
         sendButton = view.findViewById(R.id.sendButton);
         sendButton.setOnClickListener(v -> sendMessage());
+    }
+
+    @Override
+   public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+        View view = inflater.inflate(R.layout.fragment_chat, container, false);
+        loadViewModel();
+
+        chat = viewModel.getCurrentChat();
+        if (chat != null && chat.getReceiver() != null) {
+            receiverId = chat.getReceiver().getId();
+        }
 
         return view;
     }
