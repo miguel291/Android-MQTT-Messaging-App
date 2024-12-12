@@ -78,8 +78,11 @@ public class DatabaseFunctions {
         values.put(COLUMN_CHAT_RECEIVER, receiverId);
         values.put(COLUMN_CHAT_TIMESTAMP, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
 
-        long result = db.insert(TABLE_MESSAGE, null, values);
-        return result != -1;
+        //long result = db.insert(TABLE_MESSAGE, null, values);
+        //Log.i("DATAFINAL", ("Message added: " + String.valueOf(result) + " content: " + content));
+
+        //return result != -1;
+        return true;
     }
 
 
@@ -96,7 +99,7 @@ public class DatabaseFunctions {
 
         // insert user
         long value = db.insert(TABLE_MESSAGE, null, values);
-        Log.i("DATAFINAL", ("Message added: " + String.valueOf(value)));
+        Log.i("DATAFINAL", ("Message added: " + String.valueOf(value) + " content: " + messageToInsert.getContent()));
 
     }
 
