@@ -31,14 +31,9 @@ public class ConversationListFragment extends Fragment {
 
     RecyclerView recyclerView;
     ConversationViewModel viewModel;
-    int chatId = 0;
 
     public ConversationListFragment() {
         // Required empty public constructor
-    }
-
-    public static ConversationListFragment newInstance() {
-        return new ConversationListFragment();
     }
 
     public void loadViewModel() {
@@ -52,6 +47,8 @@ public class ConversationListFragment extends Fragment {
 
         Toolbar toolbar = view.findViewById(R.id.toolbarcl);
         AppCompatActivity activity = (AppCompatActivity) getActivity();
+
+        // Set toolbar title
         if (activity != null) {
             activity.setSupportActionBar(toolbar);
             if (activity.getSupportActionBar() != null) {
@@ -59,6 +56,7 @@ public class ConversationListFragment extends Fragment {
             }
         }
 
+        // Set menu and its click listeners
         requireActivity().addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
@@ -85,17 +83,18 @@ public class ConversationListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
+        // Check if no problem in the logged user
         User loggedUser = viewModel.getLoggedInUser();
         if (loggedUser == null) {
             Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        ArrayList<User> contactedUsers = ((MainActivity) requireActivity()).databaseFinal.getChats(loggedUser.getId());
+        // Get list of chats of the user
+        ArrayList<User> contactedUsers = ((MainActivity) requireActivity()).getUserChats(loggedUser.getId());
 
         Adapter adapter = new Adapter(contactedUsers, user -> {
             if (user != null) {
-                MainActivity mainActivity = (MainActivity) requireActivity();
 
                 // Retrieve all messages from LiveData
                 ArrayList<Message> allMessages = viewModel.getMessages().getValue();
@@ -103,15 +102,23 @@ public class ConversationListFragment extends Fragment {
 
                 if (allMessages != null) {
                     // Filter messages exchanged with the selected user
+                    Log.i("DEBUGZAO", "tamanho: " + String.valueOf(allMessages.size()));
                     for (Message message : allMessages) {
-                        if ((message.getSender().getId().equals(loggedUser.getId()) && message.getReceiver().getId().equals(user.getId())) ||
-                                (message.getSender().getId().equals(user.getId()) && message.getReceiver().getId().equals(loggedUser.getId()))) {
+                        Log.i("DEBUGZAO", "vm: " + loggedUser.getId());
+                        Log.i("DEBUGZAO", "content: " + message.getContent());
+                        Log.i("DEBUGZAO", "message: " + message.getReceiver());
+                        Log.i("DEBUGZAO", "message: " + user.getId());
+
+                        if ((message.getSender().equals(loggedUser.getId()) && message.getReceiver().equals(user.getId())) ||
+                                (message.getSender().equals(user.getId()) && message.getReceiver().equals(loggedUser.getId()))) {
                             filteredMessages.add(message);
                         }
                     }
                 }
 
                 // Create a new Chat object and set filtered messages
+                Log.i("DEBUGZAO", "message: " + loggedUser.getId());
+                Log.i("DEBUGZAO", "message: " + user.getId());
                 Chat chat = new Chat(1, loggedUser, user);
                 chat.setMessages(filteredMessages);
 
@@ -149,10 +156,13 @@ public class ConversationListFragment extends Fragment {
             MainActivity mainActivity = (MainActivity) requireActivity();
 
             if ( (!chatWith.isEmpty()) && (!chatWith.equals(loggedUser.getId())) ) {
-                mainActivity.showChatFragment(new Chat(1, loggedUser, new User(chatWith)));
+                Log.i("DEBUGZAO", "message: " + loggedUser.getId());
+                Log.i("DEBUGZAO", "message: " + chatWith);
+
                 dialog.dismiss();
+                mainActivity.showChatFragment(new Chat(1, loggedUser, new User(chatWith)));
             } else {
-                usernameET.setError("This username does not exist.");
+                usernameET.setError("Username not valid!");
             }
         });
 

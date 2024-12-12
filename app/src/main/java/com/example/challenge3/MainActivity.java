@@ -15,6 +15,9 @@ import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class MainActivity extends AppCompatActivity {
 
     ConversationViewModel viewModel;
@@ -117,13 +120,16 @@ public class MainActivity extends AppCompatActivity {
         Chat page
     */
     public void showChatFragment(Chat chat) {
+
         databaseFinal.createUser(chat.getReceiver().getId());
         viewModel.setChattingWithUser(chat.getReceiver());
+        viewModel.setCurrentChat(chat);
+
         findViewById(R.id.toolbar).setVisibility(View.GONE); // Show toolbar or customize as needed
         getSupportFragmentManager()
                 .beginTransaction()
-                .replace(R.id.main, ChatFragment.newInstance(chat))
                 .addToBackStack(null) // Add to back stack if back navigation is needed
+                .replace(R.id.main, ChatFragment.class, null)
                 .commit();
     }
 
@@ -145,6 +151,15 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadMessagesFromDB(){
+        ArrayList<Message> al = databaseFinal.getAllMessages();
+        for(Message m : al){
+            if(m.getReceiver() == null)
+                Log.i("DEBUGZAO-FINAL", "nullo");
+            else
+                Log.i("DEBUGZAO-FINAL", ("sender: " + m.getReceiver()));
+
+        }
+
         viewModel.setMessages(databaseFinal.getAllMessages());
     }
 
@@ -159,6 +174,10 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean createMessage(String content, String sender_id, String receiver_id){
         return databaseFinal.createMessage(content,sender_id,receiver_id);
+    }
+
+    public ArrayList<User> getUserChats(String userID){
+        return databaseFinal.getChats(userID);
     }
 }
 

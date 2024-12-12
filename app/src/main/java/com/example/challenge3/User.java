@@ -11,6 +11,7 @@ public class User {
         this.ChatList = new ArrayList<>();
     }
 
+
     public void addChat(Chat chat) {
         ChatList.add(chat);
     }

@@ -11,6 +11,8 @@ public class Message {
     public Message( int messageId, User sender, User receiver, String content, String timestamp) {
         this.content = content;
         this.timestamp = timestamp;
+        this.sender = sender;
+        this.receiver = receiver;
     }
 
     public String getContent() {

@@ -268,9 +268,19 @@ public class DatabaseFunctions {
                 String content = cursor.getString(cursor.getColumnIndexOrThrow("content"));
                 String timestamp = cursor.getString(cursor.getColumnIndexOrThrow("sent_timestamp"));
 
+
                 messages.add(new Message(messageId, new User(senderId), new User(receiverId), content, timestamp));
+                Log.i("DEBUGZAO", ("sender: " + senderId) + (" receiver: " + receiverId)
+                        + (" content: " + content)+ (" timestamp: " + timestamp));
             } while (cursor.moveToNext());
             cursor.close();
+        }
+        for(Message m : messages){
+            if(m.getReceiver() == null)
+                Log.i("DEBUGZAO-FINAL-1", "nulo");
+            else
+                Log.i("DEBUGZAO-FINAL-1", ("sender: " + m.getReceiver()));
+
         }
         return messages;
     }

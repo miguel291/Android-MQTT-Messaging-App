@@ -56,7 +56,7 @@ public class Chat implements Serializable {
     }
 
     public boolean isMessageFromSender(Message message) {
-        return message.getSender().getId() == (loggedUser.getId());
+        return message.getSender().getId().equals(loggedUser.getId());
     }
 
     public int getChatSize() {

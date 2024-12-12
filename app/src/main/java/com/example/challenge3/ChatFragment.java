@@ -39,30 +39,22 @@ public class ChatFragment extends Fragment {
         viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
     }
 
-    public static ChatFragment newInstance(Chat chat) {
-        ChatFragment fragment = new ChatFragment();
-        Bundle args = new Bundle();
-        args.putSerializable(ARG_CHAT, chat);
-        fragment.setArguments(args);
-        return fragment;
-    }
-
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        if (getArguments() != null) {
-            chat = (Chat) getArguments().getSerializable(ARG_CHAT);
-            if (chat != null && chat.getReceiver() != null) {
-                receiverId = chat.getReceiver().getId();
-            }
-        }
     }
 
     @Override
    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         loadViewModel();
+
+        chat = viewModel.getCurrentChat();
+        if (chat != null && chat.getReceiver() != null) {
+            receiverId = chat.getReceiver().getId();
+        }
+
         // Set up RecyclerView
         RecyclerView recyclerView = view.findViewById(R.id.conversationList);
         ArrayList<Message> initialMessages = chat.getMessagesLiveData().getValue();
@@ -125,7 +117,7 @@ public class ChatFragment extends Fragment {
 
 
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date());
-        Message newMessage = new Message(messageId, chat.getLoggedUser(), chat.getReceiver(), messageText, timestamp);
+        Message newMessage = new Message(messageId, new User(chat.getLoggedUser().getId()), new User(chat.getReceiver().getId()), messageText, timestamp);
         messageId++;
 
         if (!((MainActivity) requireActivity()).createMessage(messageText, chat.getLoggedUser().getId(), chat.getReceiver().getId())) {

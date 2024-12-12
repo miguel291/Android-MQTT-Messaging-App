@@ -37,7 +37,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         holder.messageText.setText(message.getContent());
         holder.timestamp.setText(message.getTimestamp());
 
-        boolean isSent = message.getSender().getId().equals(loggedInUserId);
+        boolean isSent = message.getSender().equals(loggedInUserId);
 
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) holder.messageContainer.getLayoutParams();
         if (isSent) {
