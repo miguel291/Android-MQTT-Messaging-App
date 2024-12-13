@@ -104,6 +104,21 @@ public class DatabaseFunctions {
     }
 
 
+    /*
+        Delete all the messages between two provided users
+     */
+    public boolean deleteChatBetweenUser(String user1, String user2){
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        String query = COLUMN_CHAT_SENDER + " = ? AND " + COLUMN_CHAT_RECEIVER +
+                " = ? OR " + COLUMN_CHAT_RECEIVER + " = ? AND " + COLUMN_CHAT_SENDER + " = ?" ;
+        db.delete(TABLE_MESSAGE,query,new String[]{String.valueOf(user1), String.valueOf(user2),
+                String.valueOf(user2), String.valueOf(user1)});
+
+        return true;
+    }
+
+
+
     /* Retrieve all the messages exchanged between sender_id and receiver_id */
     public ArrayList<Message> dynamicChatCreation(String senderId, String receiverId){
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -132,7 +147,7 @@ public class DatabaseFunctions {
 
     // Retrieve all chats (only the users list) for a specific user (the logged one)
     // Key changes in database query consistency.
-    public ArrayList<User> getChats(String loggedUserId) {
+    public ArrayList<User> getUserChats(String loggedUserId) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         String query = "SELECT DISTINCT CASE " +
                 "WHEN " + COLUMN_CHAT_SENDER + " = ? THEN " + COLUMN_CHAT_RECEIVER + " " +
@@ -158,8 +173,6 @@ public class DatabaseFunctions {
     }
 
 
-
-
     /* Retrieve all messages where user_id is sender or receiver */
     public ArrayList<Message> getMessages(String username) {
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -179,7 +192,6 @@ public class DatabaseFunctions {
         }
         return messages;
     }
-
 
     /* Get two users as input and retrieve all the messages between them*/
     public ArrayList<Message> getMessagesBetweenTwoUsers(String sender_id, String receiver_id) {
@@ -219,8 +231,6 @@ public class DatabaseFunctions {
         cursor.close();
         return users;
     }
-
-
 
     public void insertUsers(ArrayList<User> usersToInsert){
         // get db instance
@@ -272,7 +282,6 @@ public class DatabaseFunctions {
         }
     }
 
-
     public ArrayList<Message> getAllMessages() {
         // get db instance
         SQLiteDatabase db = dbHelper.getReadableDatabase();
@@ -315,8 +324,4 @@ public class DatabaseFunctions {
         }
     }
 
-
-    public void randomMessages(){
-        // NEED IMPLEMENTATION
-    }
 }

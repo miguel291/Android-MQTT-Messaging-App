@@ -88,7 +88,7 @@ public class MainActivity extends AppCompatActivity {
             Log.d("MainActivity", "Logged-in user: " + loggedUser.getId());
 
             /* This is the chat List*/
-            viewModel.setContactedUsers(databaseFinal.getChats(userId));
+            viewModel.setContactedUsers(databaseFinal.getUserChats(userId));
             showChatList();
         } else {
             Log.d("MainActivity", "No logged-in user found. Showing login form.");
@@ -195,8 +195,12 @@ public class MainActivity extends AppCompatActivity {
         return databaseFinal.createMessage(content,sender_id,receiver_id);
     }
 
-    public ArrayList<User> getUserChats(String userID){
-        return databaseFinal.getChats(userID);
+    public ArrayList<User> getUserWithChat(String userID){
+        return databaseFinal.getUserChats(userID);
+    }
+
+    public boolean deleteChatBetweenUser(String user1, String user2){
+        return databaseFinal.deleteChatBetweenUser(user1, user2);
     }
 
     public void updateChatDB(Message newMessage){

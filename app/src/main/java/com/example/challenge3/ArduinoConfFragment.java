@@ -90,7 +90,7 @@ public class ArduinoConfFragment extends Fragment {
 
         MainActivity activity = (MainActivity) requireActivity();
         if (activity != null) {
-            ArrayList<User> contactedUsers = activity.getUserChats(viewModel.getLoggedInUser().getId());
+            ArrayList<User> contactedUsers = activity.getUserWithChat(viewModel.getLoggedInUser().getId());
             recyclerView.setAdapter(new RecyclerView.Adapter<RecyclerView.ViewHolder>() {
                 @Override
                 public int getItemViewType(int position) {

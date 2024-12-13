@@ -5,6 +5,7 @@ import android.os.Bundle;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.view.MenuProvider;
@@ -31,6 +32,7 @@ public class ConversationListFragment extends Fragment {
 
     RecyclerView recyclerView;
     ConversationViewModel viewModel;
+    Adapter adapter;
 
     public ConversationListFragment() {
         // Required empty public constructor
@@ -91,9 +93,9 @@ public class ConversationListFragment extends Fragment {
         }
 
         // Get list of chats of the user
-        ArrayList<User> contactedUsers = ((MainActivity) requireActivity()).getUserChats(loggedUser.getId());
+        ArrayList<User> contactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
 
-        Adapter adapter = new Adapter(contactedUsers, user -> {
+        adapter = new Adapter(contactedUsers, user -> {
             if (user != null) {
 
                 // Retrieve all messages from LiveData
@@ -117,9 +119,23 @@ public class ConversationListFragment extends Fragment {
 
                 openConversation(chat); // Open the chat with the retrieved messages
             }
-        }, position -> {
-            // Handle delete logic if needed
-        });
+        }, position -> { // Long press handler
+             User user = contactedUsers.get (position);
+
+                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+                builder.setTitle("Choose an action")
+                        .setMessage("Would you like to erase the chat with " + user.getId() + "?")
+                        .setPositiveButton("Delete", (dialog, which) -> {
+                            contactedUsers.remove(position);
+
+                            viewModel.setContactedUsers(contactedUsers);
+                            ((MainActivity) requireActivity()).deleteChatBetweenUser(loggedUser.getId(), user.getId());
+                            adapter.notifyDataSetChanged();
+                            Toast.makeText(requireContext(), ("Deleted Chat! ") + contactedUsers , Toast.LENGTH_SHORT).show();
+                        })
+                        .setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss())
+                        .show();
+         });
 
 
 
@@ -131,6 +147,10 @@ public class ConversationListFragment extends Fragment {
 
 
 
+    /*
+        Dialog to create new chat with
+        a user
+     */
     public void showCustomDialog() {
         Log.d("Debug", "ViewModel: " + viewModel);
         Log.d("Debug", "LoggedInUser: " + (viewModel != null ? viewModel.getLoggedInUser() : "null"));
