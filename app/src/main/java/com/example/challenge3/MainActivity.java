@@ -3,6 +3,7 @@ package com.example.challenge3;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
@@ -11,6 +12,7 @@ import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -27,12 +29,14 @@ import org.eclipse.paho.client.mqttv3.MqttMessage;
 import java.util.ArrayList;
 import java.util.List;
 
+import info.mqtt.android.service.MqttAndroidClient;
+
 public class MainActivity extends AppCompatActivity {
 
     ConversationViewModel viewModel;
     DatabaseFunctions databaseFinal;
     MQTTHelper mqttHelper;
-
+    MqttAndroidClient mqttClient = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,6 +48,13 @@ public class MainActivity extends AppCompatActivity {
         // Initialize database helper and writable database
         databaseFinal = new DatabaseFunctions(this);
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
+
+        Intent serviceIntent = new Intent(this, MqttForegroundService.class);
+        // To prevent service from not being started if it is already running
+        stopService(serviceIntent);
+        ContextCompat.startForegroundService(this, serviceIntent);
+        Log.d("MQTT", "Attempted to start the service.");
+
 
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
@@ -88,6 +99,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        if (mqttClient != null) {
+            mqttClient.disconnect();
+            Log.d("MQTT", "Disconnected from MQTT broker");
+        }
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -110,7 +129,7 @@ public class MainActivity extends AppCompatActivity {
         Chat list page
     */
     public void showChatList(){
-        //connectToMqtt();
+        connectToMqtt();
         findViewById(R.id.toolbar).setVisibility(View.GONE);
         getSupportFragmentManager()
                 .beginTransaction()
@@ -192,32 +211,42 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void connectToMqtt(){
-        mqttHelper = new MQTTHelper(this, "clientId", "chatroom1");
+        Log.d("MQTT", "Attempting to connect to MQTT...");
 
-        // Set callback for handling MQTT events
-        mqttHelper.setCallback(new MqttCallbackExtended() {
+        // Set a listener to handle when the MQTT client is ready
+        MqttForegroundService.setOnMqttClientReadyListener(new MqttForegroundService.OnMqttClientReadyListener() {
             @Override
-            public void connectComplete(boolean reconnect, String serverURI) {
-                Log.d("MQTT", "Connected to: " + serverURI);
-            }
+            public void onClientReady(MqttAndroidClient client) {
+                mqttClient = MqttForegroundService.getMqttClient();
+                Log.d("MQTT", "MQTT Client: " + mqttClient.toString());
+                mqttHelper = new MQTTHelper(mqttClient);
+                mqttHelper.subscribeToTopic("chatroom1");
+                mqttHelper.setCallback(new MqttCallbackExtended() {
+                    @Override
+                    public void connectComplete(boolean reconnect, String serverURI) {
+                        Log.d("MQTT", "Connected to: " + serverURI);
+                    }
 
-            @Override
-            public void connectionLost(Throwable cause) {
-                Log.d("MQTT", "Connection lost: " + cause.getMessage());
-            }
+                    @Override
+                    public void connectionLost(Throwable cause) {
+                        Log.d("MQTT", "Connection lost: " + cause.getMessage());
+                    }
 
-            @Override
-            public void messageArrived(String topic, MqttMessage message) {
-                Log.d("MQTT", "Message: " + message.toString());
-                // Handle the message (e.g., update UI)
-            }
-            @Override
-            public void deliveryComplete(IMqttDeliveryToken token) {
-                Log.d("MQTT", "Delivery complete");
+                    @Override
+                    public void messageArrived(String topic, MqttMessage message) {
+                        Log.d("MQTT", "Message: " + message.toString());
+                    }
+
+                    @Override
+                    public void deliveryComplete(IMqttDeliveryToken token) {
+                        Log.d("MQTT", "Delivery complete");
+                    }
+                });
+
+                // Connect to MQTT
+                //mqttHelper.connect();
             }
         });
-        // Connect to the broker
-        mqttHelper.connect();
     }
 
 }

@@ -7,7 +7,7 @@ android {
 
     defaultConfig {
         applicationId = "com.example.challenge3"
-        minSdk = 24
+        minSdk = 26
         targetSdk = 34
         versionCode = 1
         versionName = "1.0"
@@ -44,6 +44,6 @@ dependencies {
     implementation(libs.paho.mqttv3)
     implementation(libs.localbroadcastmanager)
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.0.0")
-    implementation("com.github.hannesa2:paho.mqtt.android:3.3.5")
+    implementation("com.github.hannesa2:paho.mqtt.android:3.6.6")
 
 }
