@@ -97,7 +97,13 @@ public class ChatFragment extends Fragment {
         // Initialize message input and send button
         messageInput = view.findViewById(R.id.messageInput);
         sendButton = view.findViewById(R.id.sendButton);
-        sendButton.setOnClickListener(v -> sendMessage());
+        sendButton.setOnClickListener(v -> {
+            try {
+                sendMessage();
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
     }
 
 
@@ -118,7 +124,7 @@ public class ChatFragment extends Fragment {
 
 
 
-    private void sendMessage() {
+    private void sendMessage() throws Exception {
         String messageText = messageInput.getText().toString().trim();
 
         if (messageText.isEmpty()) {
@@ -140,7 +146,8 @@ public class ChatFragment extends Fragment {
         boolean messageSent = ((MainActivity) requireActivity()).createMessage(
                 messageText,
                 chat.getLoggedUser().getId(),
-                chat.getReceiver().getId()
+                chat.getReceiver().getId(),
+                timestamp
         );
 
         if (!messageSent) {

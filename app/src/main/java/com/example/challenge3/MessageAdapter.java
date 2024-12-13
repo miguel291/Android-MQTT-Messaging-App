@@ -42,7 +42,7 @@ public class MessageAdapter extends RecyclerView.Adapter<MessageAdapter.MessageV
         boolean isSent = true;
 
         LinearLayout.LayoutParams params = (LinearLayout.LayoutParams) holder.messageContainer.getLayoutParams();
-        if (isSent) {
+        if (message.getSender().getId().equals(loggedInUserId)) {
             params.gravity = Gravity.END;
             holder.messageContainer.setBackgroundResource(R.drawable.message_sent_background);
         } else {

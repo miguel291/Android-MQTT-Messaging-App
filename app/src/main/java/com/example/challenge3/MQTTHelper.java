@@ -7,6 +7,7 @@ import org.eclipse.paho.client.mqttv3.IMqttToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
+import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import info.mqtt.android.service.Ack;
 import info.mqtt.android.service.MqttAndroidClient;
@@ -21,10 +22,12 @@ import androidx.core.app.NotificationCompat;
 public class MQTTHelper {
 
     private MqttAndroidClient mqttAndroidClient;
+    String userId;
 
     // Constructor that accepts an existing MqttAndroidClient
-    public MQTTHelper(MqttAndroidClient client) {
+    public MQTTHelper(MqttAndroidClient client, String userId) {
         this.mqttAndroidClient = client;
+        this.userId = userId;
     }
 
     public void setCallback(MqttCallbackExtended callback) {
@@ -77,6 +80,47 @@ public class MQTTHelper {
                 }
             });
         }
+    }
+
+    public void publishMessage(String topic, String message) throws Exception{
+        if (mqttAndroidClient != null && mqttAndroidClient.isConnected()) {
+            try {
+                MqttMessage mqttMessage = new MqttMessage();
+                mqttMessage.setPayload(message.getBytes());
+                mqttAndroidClient.publish(topic, mqttMessage);
+                Log.d("MQTT", "Message published to topic: " + topic);
+            } catch (Exception e) {
+                Log.e("MQTT", "Failed to publish message: " + e.getMessage());
+            }
+        } else {
+            Log.e("MQTT", "MQTT Helper is null or not connected. Cannot publish message.");
+        }
+    }
+
+
+    public Message messageArrived(String topic, MqttMessage message) {
+        Log.d("MQTT", "Message arrived from topic: " + topic);
+        Log.d("MQTT", "Message content: " + message.toString());
+
+        return processMessageReceived(topic, message.toString());
+    }
+
+    // Callback to handle the received message
+    private Message processMessageReceived(String topic, String message) {
+        Log.d("MQTT", "Processing message: " + message + " from topic: " + topic);
+        Message newMessage = null;
+        String[] parts = message.split("_");
+        Log.d("MQTT", "For user: " + parts[0].strip());
+        Log.d("MQTT", "Current user: " + userId);
+        if(parts[0].strip().matches(userId)){
+            // Message is for current user
+            newMessage = new Message(0, new User(parts[1]), new User(parts[0]), parts[2], parts[3]);
+            Log.d("MQTT", "Timestamp: " + parts[3]);
+        }
+        else{
+            Log.d("MQTT", "Message is not for user");
+        }
+        return newMessage;
     }
 
     public void stop() {

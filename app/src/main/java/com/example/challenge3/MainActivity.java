@@ -1,17 +1,12 @@
 package com.example.challenge3;
 
-import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.app.NotificationCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
@@ -21,13 +16,13 @@ import androidx.lifecycle.ViewModelProvider;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
+import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.ArrayList;
-import java.util.List;
 
 import info.mqtt.android.service.MqttAndroidClient;
 
@@ -37,6 +32,8 @@ public class MainActivity extends AppCompatActivity {
     DatabaseFunctions databaseFinal;
     MQTTHelper mqttHelper;
     MqttAndroidClient mqttClient = null;
+    private static final String CHATROOM_TOPIC = "chatroom1";
+    String userId;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -68,7 +65,7 @@ public class MainActivity extends AppCompatActivity {
 
         // Check if the user is already logged in
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
-        String userId = sharedPreferences.getString("USER_ID", null);
+        userId = sharedPreferences.getString("USER_ID", null);
         Log.d("MainActivity", "USER_ID from SharedPreferences: " + userId);
 
         // Load data from DB into ViewModel
@@ -193,7 +190,8 @@ public class MainActivity extends AppCompatActivity {
         return databaseFinal.userExists(username);
     }
 
-    public boolean createMessage(String content, String sender_id, String receiver_id){
+    public boolean createMessage(String content, String sender_id, String receiver_id, String timestamp) throws Exception {
+        mqttHelper.publishMessage(CHATROOM_TOPIC, receiver_id + "_" + sender_id + "_" + content + "_" + timestamp);
         return databaseFinal.createMessage(content,sender_id,receiver_id);
     }
 
@@ -219,12 +217,13 @@ public class MainActivity extends AppCompatActivity {
             public void onClientReady(MqttAndroidClient client) {
                 mqttClient = MqttForegroundService.getMqttClient();
                 Log.d("MQTT", "MQTT Client: " + mqttClient.toString());
-                mqttHelper = new MQTTHelper(mqttClient);
-                mqttHelper.subscribeToTopic("chatroom1");
+                mqttHelper = new MQTTHelper(mqttClient, userId);
                 mqttHelper.setCallback(new MqttCallbackExtended() {
                     @Override
                     public void connectComplete(boolean reconnect, String serverURI) {
                         Log.d("MQTT", "Connected to: " + serverURI);
+                        mqttHelper.subscribeToTopic(CHATROOM_TOPIC);
+                        Toast.makeText(MainActivity.this, "Connected to MQTT server: " , Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
@@ -234,7 +233,11 @@ public class MainActivity extends AppCompatActivity {
 
                     @Override
                     public void messageArrived(String topic, MqttMessage message) {
-                        Log.d("MQTT", "Message: " + message.toString());
+                        Message newMessage = mqttHelper.messageArrived(topic, message);
+                        if (newMessage != null){
+                            updateChatDB(newMessage);
+                            Log.d("MQTT", "Message: " + message.toString());
+                        }
                     }
 
                     @Override
