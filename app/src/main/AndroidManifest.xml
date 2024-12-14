@@ -28,11 +28,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service
-            android:name=".MqttForegroundService"
-            android:exported="false"
-            android:enabled="true"
-            android:foregroundServiceType="dataSync" />
     </application>
 
 </manifest>

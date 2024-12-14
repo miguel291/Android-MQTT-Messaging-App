@@ -68,9 +68,16 @@ public class DatabaseFunctions {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
         if (!userExists(senderId) || !userExists(receiverId)) {
-            Log.e("DatabaseFunctions", "Sender or Receiver does not exist in the database.");
-            return false;
+            if(!userExists(senderId)){
+                createUser(senderId);
+                Log.i("DatabaseFunctions", "External sender created!");
+
+            }else{
+                Log.e("DatabaseFunctions", "Receiver does not exist in the database.");
+                return false;
+            }
         }
+
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_CHAT_CONTENT, content);
@@ -90,6 +97,15 @@ public class DatabaseFunctions {
         // get db instance
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
+        if (!userExists(messageToInsert.getSender().getId()) || !userExists(messageToInsert.getReceiver().getId())) {
+            if(!userExists(messageToInsert.getSender().getId())){
+                createUser(messageToInsert.getSender().getId());
+                Log.i("DatabaseFunctions", "External sender created!");
+
+            }else{
+                Log.e("DatabaseFunctions", "Receiver does not exist in the database.");
+            }
+        }
         // create object
         ContentValues values = new ContentValues();
         values.put(COLUMN_CHAT_SENDER, messageToInsert.getSender().getId());
@@ -99,6 +115,7 @@ public class DatabaseFunctions {
 
         // insert user
         long value = db.insert(TABLE_MESSAGE, null, values);
+        Log.i("DATAFINAL", ("new message: " + value));
         Log.i("DATAFINAL", ("Message added: " + String.valueOf(value) + " content: " + messageToInsert.getContent()));
 
     }
