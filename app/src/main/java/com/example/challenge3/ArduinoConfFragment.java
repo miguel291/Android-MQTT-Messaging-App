@@ -145,6 +145,7 @@ public class ArduinoConfFragment extends Fragment {
 
                             // add selected user
                             selectList.add(user.getId());
+                            viewModel.setSelectListArduino(selectList);
 
                             // save preferences
                             SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -162,6 +163,7 @@ public class ArduinoConfFragment extends Fragment {
 
                             // remove deselected user
                             selectList.remove(user.getId());
+                            viewModel.setSelectListArduino(selectList);
 
                             // save preferences
                             SharedPreferences.Editor editor = sharedPreferences.edit();

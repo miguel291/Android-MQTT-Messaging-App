@@ -24,6 +24,9 @@ import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 import info.mqtt.android.service.MqttAndroidClient;
 
@@ -87,6 +90,11 @@ public class MainActivity extends AppCompatActivity {
                             parts[0],
                             parts[3]
                     );*/
+
+                    if(viewModel.getSelectListArduino().getValue().contains(parts[1])){ // if in arduino contacts:
+                        mqttHelper.publishMessage("arduino" + "_" + parts[1] + "_" + parts[2] + "_" + parts[3]);
+                    }
+
                     updateChatDB(newMessage);
 
                     // -----------------------------------------------------------------
@@ -134,6 +142,12 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         userId = sharedPreferences.getString("USER_ID", null);
         Log.d("MainActivity", "USER_ID from SharedPreferences: " + userId);
+
+        // get users arduino selected
+        SharedPreferences arduinoSharedPreferences = getSharedPreferences("arduinoConf", MODE_PRIVATE);
+        String setUsers = arduinoSharedPreferences.getString("selectedUsers", "");
+        Set<String> selectList = new HashSet<>(Arrays.asList(setUsers.split(",")));
+        viewModel.setSelectListArduino(selectList);
 
         // Load data from DB into ViewModel
         loadUserFromDB(); // Load existing users
@@ -259,9 +273,7 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean createMessage(String content, String sender_id, String receiver_id, String timestamp) throws Exception {
         mqttHelper.publishMessage(receiver_id + "_" + sender_id + "_" + content + "_" + timestamp);
-        if(true){ // if in arduino contacts:
-            mqttHelper.publishMessage("arduino" + "_" + sender_id + "_" + content + "_" + timestamp);
-        }
+
         return databaseFinal.createMessage(content,sender_id,receiver_id);
     }
 

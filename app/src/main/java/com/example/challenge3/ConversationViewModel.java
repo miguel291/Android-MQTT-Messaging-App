@@ -8,13 +8,15 @@ import androidx.lifecycle.ViewModel;
 
 import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ConversationViewModel extends ViewModel {
 
     private MutableLiveData<ArrayList<Message>> messages = new MutableLiveData<>(new ArrayList<>());
     private MutableLiveData<ArrayList<User>> users = new MutableLiveData<>(new ArrayList<>());
     private MutableLiveData<ArrayList<User>> contactedUsers = new MutableLiveData<>(new ArrayList<>());
-
+    private MutableLiveData<Set<String>> selectListArduino = new MutableLiveData<>(new HashSet());
     // In your ViewModel, set the logged-in user when the user logs in
     private User loggedInUser;
     private User chattingWithUser;
@@ -22,6 +24,14 @@ public class ConversationViewModel extends ViewModel {
 
     public ConversationViewModel() {
        //Initialize the viewmodel
+    }
+
+    public void setSelectListArduino(Set<String> selectListArduino) {
+        this.selectListArduino.setValue(selectListArduino);
+    }
+
+    public MutableLiveData<Set<String>> getSelectListArduino() {
+        return selectListArduino;
     }
 
     public void setMessages(ArrayList<Message> newMessages) {
