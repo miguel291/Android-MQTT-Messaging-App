@@ -238,7 +238,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean createMessage(String content, String sender_id, String receiver_id, String timestamp) throws Exception {
-        //mqttHelper.publishMessage(CHATROOM_TOPIC, receiver_id + "_" + sender_id + "_" + content + "_" + timestamp);
+        mqttHelper.publishMessage(receiver_id + "_" + sender_id + "_" + content + "_" + timestamp);
         return databaseFinal.createMessage(content,sender_id,receiver_id);
     }
 
@@ -251,6 +251,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateChatDB(Message newMessage){
+        //mqttHelper.publishMessage(newMessage.getReceiver().getId() + "_" + newMessage.getSender().getId() + "_" + newMessage.getContent() + "_" + newMessage.getTimestamp());
         databaseFinal.insertMessage(newMessage);
         loadMessagesFromDB();
     }
@@ -261,7 +262,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void connectToMqtt(){
         Log.d("MQTT", "Attempting to connect to MQTT...");
-
     }
 
 }

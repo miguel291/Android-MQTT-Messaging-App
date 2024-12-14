@@ -12,19 +12,23 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
+import java.util.UUID;
+
 public class MQTTHelper {
     public MqttAndroidClient mqttAndroidClient;
 
     // final String server = "tcp://2.80.198.184:1883";
     final String server = "tcp://broker.hivemq.com:1883";
+    // final String server = "broker.emqx.io:1883";
     final String TAG = "MQTT";
     final static String TOPIC = "MC/MCHAT/TOPICGENERAL/";
     private String name;
 
     public MQTTHelper(Context context, String name) {
-        this.name = name;
+        this.name = UUID.randomUUID().toString();
+        Log.i("MQTT",this.name);
 
-        mqttAndroidClient = new MqttAndroidClient(context, server, name);
+        mqttAndroidClient = new MqttAndroidClient(context, server, this.name);
     }
 
     public void setCallback(MqttCallbackExtended callback) {
@@ -117,13 +121,13 @@ public class MQTTHelper {
         return name;
     }
 
-    public void publishMessage(String topic, String message) throws Exception{
+    public void publishMessage(String message){
         if (mqttAndroidClient != null && mqttAndroidClient.isConnected()) {
             try {
                 MqttMessage mqttMessage = new MqttMessage();
                 mqttMessage.setPayload(message.getBytes());
-                mqttAndroidClient.publish(topic, mqttMessage);
-                Log.d("MQTT", "Message published to topic: " + topic);
+                mqttAndroidClient.publish(TOPIC, mqttMessage);
+                Log.d("MQTT", "Message published to topic: " + TOPIC);
             } catch (Exception e) {
                 Log.e("MQTT", "Failed to publish message: " + e.getMessage());
             }

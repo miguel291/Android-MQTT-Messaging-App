@@ -43,6 +43,7 @@ dependencies {
     //implementation(libs.paho.android.service)
     //implementation(libs.org.eclipse.paho.client.mqttv3)
     implementation("org.eclipse.paho:org.eclipse.paho.client.mqttv3:1.2.5")
+    implementation("org.eclipse.paho:org.eclipse.paho.android.service:1.1.1")
     implementation(libs.paho.mqttv3)
     implementation(libs.localbroadcastmanager)
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.0.0")
