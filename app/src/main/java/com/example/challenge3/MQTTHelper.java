@@ -1,6 +1,9 @@
 package com.example.challenge3;
 
+import android.content.Context;
+import android.util.Log;
 
+import info.mqtt.android.service.MqttAndroidClient;
 import org.eclipse.paho.client.mqttv3.DisconnectedBufferOptions;
 import org.eclipse.paho.client.mqttv3.IMqttActionListener;
 import org.eclipse.paho.client.mqttv3.IMqttToken;
@@ -9,86 +12,122 @@ import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
 import org.eclipse.paho.client.mqttv3.MqttException;
 import org.eclipse.paho.client.mqttv3.MqttMessage;
 
-import info.mqtt.android.service.Ack;
-import info.mqtt.android.service.MqttAndroidClient;
-
-import android.app.Notification;
-import android.content.Context;
-import android.util.Log;
-
-import androidx.core.app.NotificationCompat;
-
+import java.util.UUID;
 
 public class MQTTHelper {
+    public MqttAndroidClient mqttAndroidClient;
 
-    private MqttAndroidClient mqttAndroidClient;
-    String userId;
+    // final String server = "tcp://2.80.198.184:1883";
+    final String server = "tcp://broker.hivemq.com:1883";
+    // final String server = "broker.emqx.io:1883";
+    final String TAG = "MQTT";
+    final static String TOPIC = "MC/MCHAT/TOPICGENERAL/";
+    private String name;
 
-    // Constructor that accepts an existing MqttAndroidClient
-    public MQTTHelper(MqttAndroidClient client, String userId) {
-        this.mqttAndroidClient = client;
-        this.userId = userId;
+    public MQTTHelper(Context context, String name) {
+        this.name = UUID.randomUUID().toString();
+        Log.i("MQTT",this.name);
+
+        mqttAndroidClient = new MqttAndroidClient(context, server, this.name);
     }
 
     public void setCallback(MqttCallbackExtended callback) {
         mqttAndroidClient.setCallback(callback);
     }
-/*
+
     public void connect() {
-        if (mqttAndroidClient != null) {
-            mqttAndroidClient.connect(null, new IMqttActionListener() {
+        MqttConnectOptions mqttConnectOptions = new MqttConnectOptions();
+        mqttConnectOptions.setAutomaticReconnect(true);
+        mqttConnectOptions.setCleanSession(true);
+
+        try {
+
+            mqttAndroidClient.connect(mqttConnectOptions, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.d("MQTT", "Connected successfully!");
+
+                    // Adjusting the set of options that govern the behaviour of Offline (or
+                    // Disconnected) buffering of messages
+                    DisconnectedBufferOptions disconnectedBufferOptions = new DisconnectedBufferOptions();
+                    disconnectedBufferOptions.setBufferEnabled(true);
+                    disconnectedBufferOptions.setBufferSize(100);
+                    disconnectedBufferOptions.setPersistBuffer(false);
+                    disconnectedBufferOptions.setDeleteOldestMessages(false);
+                    mqttAndroidClient.setBufferOpts(disconnectedBufferOptions);
+                    Log.w(TAG, "Success connecting!");
+                    subscribeToTopic(TOPIC);
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.w("MQTT", "Failed to connect: " + exception.getMessage());
+                    Log.w(TAG, "Failed to connect to: " + server + " " + exception.toString());
                 }
             });
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
         }
-    }*/
+    }
+
+    public void stop() {
+        try {
+            mqttAndroidClient.disconnect();
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
 
     public void subscribeToTopic(String topic) {
-        if (mqttAndroidClient != null) {
+        try {
             mqttAndroidClient.subscribe(topic, 0, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.d("MQTT", "Subscribed successfully!");
+                    Log.w(TAG, "Subscribed!");
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.w("MQTT", "Failed to subscribe: " + exception.getMessage());
+                    Log.w(TAG, "Subscribed fail!");
                 }
             });
+
+        } catch (Exception ex) {
+            System.err.println("Exception subscribing");
+            ex.printStackTrace();
         }
     }
 
     public void unsubscribeToTopic(String topic) {
-        if (mqttAndroidClient != null) {
+        try {
             mqttAndroidClient.unsubscribe(topic, null, new IMqttActionListener() {
                 @Override
                 public void onSuccess(IMqttToken asyncActionToken) {
-                    Log.d("MQTT", "Unsubscribed successfully!");
+                    Log.w(TAG, "Unsubscribed!");
                 }
 
                 @Override
                 public void onFailure(IMqttToken asyncActionToken, Throwable exception) {
-                    Log.w("MQTT", "Failed to unsubscribe: " + exception.getMessage());
+                    Log.w(TAG, "Unsubscribed fail!");
                 }
             });
+
+        } catch (Exception ex) {
+            System.err.println("Exception unsubscribing");
+            ex.printStackTrace();
         }
     }
 
-    public void publishMessage(String topic, String message) throws Exception{
+    public String getName() {
+        return name;
+    }
+
+    public void publishMessage(String message){
         if (mqttAndroidClient != null && mqttAndroidClient.isConnected()) {
             try {
                 MqttMessage mqttMessage = new MqttMessage();
                 mqttMessage.setPayload(message.getBytes());
-                mqttAndroidClient.publish(topic, mqttMessage);
-                Log.d("MQTT", "Message published to topic: " + topic);
+                mqttAndroidClient.publish(TOPIC, mqttMessage);
+                Log.d("MQTT", "Message published to topic: " + TOPIC);
             } catch (Exception e) {
                 Log.e("MQTT", "Failed to publish message: " + e.getMessage());
             }
@@ -97,35 +136,4 @@ public class MQTTHelper {
         }
     }
 
-
-    public Message messageArrived(String topic, MqttMessage message) {
-        Log.d("MQTT", "Message arrived from topic: " + topic);
-        Log.d("MQTT", "Message content: " + message.toString());
-
-        return processMessageReceived(topic, message.toString());
-    }
-
-    // Callback to handle the received message
-    private Message processMessageReceived(String topic, String message) {
-        Log.d("MQTT", "Processing message: " + message + " from topic: " + topic);
-        Message newMessage = null;
-        String[] parts = message.split("_");
-        Log.d("MQTT", "For user: " + parts[0].strip());
-        Log.d("MQTT", "Current user: " + userId);
-        if(parts[0].strip().matches(userId)){
-            // Message is for current user
-            newMessage = new Message(0, new User(parts[1]), new User(parts[0]), parts[2], parts[3]);
-            Log.d("MQTT", "Timestamp: " + parts[3]);
-        }
-        else{
-            Log.d("MQTT", "Message is not for user");
-        }
-        return newMessage;
-    }
-
-    public void stop() {
-        if (mqttAndroidClient != null) {
-            mqttAndroidClient.disconnect();
-        }
-    }
 }

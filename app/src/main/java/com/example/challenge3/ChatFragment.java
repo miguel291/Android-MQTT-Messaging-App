@@ -24,7 +24,6 @@ import java.util.ArrayList;
 
 public class ChatFragment extends Fragment {
     private static final String ARG_CHAT = "chat";
-    private Chat chat;
     private String receiverId;
 
     private EditText messageInput;
@@ -51,7 +50,7 @@ public class ChatFragment extends Fragment {
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
 
         // Initialize adapter with an empty list
-        MessageAdapter adapter = new MessageAdapter(new ArrayList<>(), chat.getLoggedUser().getId());
+        MessageAdapter adapter = new MessageAdapter(new ArrayList<>(), viewModel.getCurrentChat().getLoggedUser().getId());
         recyclerView.setAdapter(adapter);
 
         // Maintain a single list to store all messages
@@ -59,8 +58,8 @@ public class ChatFragment extends Fragment {
 
         // Load initial messages
         //ArrayList<Message> initialMessages = viewModel.getMessages().getValue();
-        ArrayList<Message> initialMessages = viewModel.getMessagesBetweenUsers(chat.getLoggedUser().getId(),
-                chat.getReceiver().getId());
+        ArrayList<Message> initialMessages = viewModel.getMessagesBetweenUsers(viewModel.getCurrentChat().getLoggedUser().getId(),
+                viewModel.getCurrentChat().getReceiver().getId());
 
         if (initialMessages != null && !initialMessages.isEmpty()) {
             allMessages.addAll(initialMessages); // Add initial messages to allMessages
@@ -69,7 +68,7 @@ public class ChatFragment extends Fragment {
         }
 
         // Observe LiveData for new messages
-        chat.getMessagesLiveData().observe(getViewLifecycleOwner(), newMessages -> {
+        viewModel.getCurrentChat().getMessagesLiveData().observe(getViewLifecycleOwner(), newMessages -> {
             if (newMessages != null && !newMessages.isEmpty()) {
                 Log.d("ChatFragment", "New Messages received: " + newMessages.size());
 
@@ -113,9 +112,9 @@ public class ChatFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_chat, container, false);
         loadViewModel();
 
-        chat = viewModel.getCurrentChat();
-        if (chat != null && chat.getReceiver() != null) {
-            receiverId = chat.getReceiver().getId();
+
+        if (viewModel.getCurrentChat() != null && viewModel.getCurrentChat().getReceiver() != null) {
+            receiverId = viewModel.getCurrentChat().getReceiver().getId();
         }
 
         return view;
@@ -132,21 +131,21 @@ public class ChatFragment extends Fragment {
             return;
         }
 
-        if (chat.getLoggedUser() == null || chat.getReceiver() == null) {
+        if (viewModel.getCurrentChat().getLoggedUser() == null || viewModel.getCurrentChat().getReceiver() == null) {
             Toast.makeText(requireContext(), "Chat information is missing.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Create a new message
         String timestamp = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.getDefault()).format(new java.util.Date());
-        Message newMessage = new Message(messageId, new User(chat.getLoggedUser().getId()), new User(chat.getReceiver().getId()), messageText, timestamp);
+        Message newMessage = new Message(messageId, new User(viewModel.getCurrentChat().getLoggedUser().getId()), new User(viewModel.getCurrentChat().getReceiver().getId()), messageText, timestamp);
         messageId++;
 
         // Simulate message sending (e.g., via MainActivity)
         boolean messageSent = ((MainActivity) requireActivity()).createMessage(
                 messageText,
-                chat.getLoggedUser().getId(),
-                chat.getReceiver().getId(),
+                viewModel.getCurrentChat().getLoggedUser().getId(),
+                viewModel.getCurrentChat().getReceiver().getId(),
                 timestamp
         );
 
@@ -156,7 +155,7 @@ public class ChatFragment extends Fragment {
         }
 
         // Retrieve existing messages and add the new one
-        ArrayList<Message> currentMessages = chat.getMessagesLiveData().getValue();
+        ArrayList<Message> currentMessages = viewModel.getCurrentChat().getMessagesLiveData().getValue();
         if (currentMessages == null) {
             currentMessages = new ArrayList<>();
         }
@@ -165,7 +164,7 @@ public class ChatFragment extends Fragment {
         currentMessages.add(newMessage);
 
         // Update LiveData
-        chat.getMessagesLiveData().setValue(new ArrayList<>(currentMessages)); // Ensure the LiveData is updated with a new instance
+        viewModel.getCurrentChat().getMessagesLiveData().setValue(new ArrayList<>(currentMessages)); // Ensure the LiveData is updated with a new instance
 
         MainActivity mainActivity = (MainActivity) requireActivity();
         mainActivity.updateChatDB(newMessage);

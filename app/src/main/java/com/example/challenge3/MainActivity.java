@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
@@ -31,7 +32,6 @@ public class MainActivity extends AppCompatActivity {
     ConversationViewModel viewModel;
     DatabaseFunctions databaseFinal;
     MQTTHelper mqttHelper;
-    MqttAndroidClient mqttClient = null;
     private static final String CHATROOM_TOPIC = "chatroom1";
     String userId;
 
@@ -45,12 +45,79 @@ public class MainActivity extends AppCompatActivity {
         // Initialize database helper and writable database
         databaseFinal = new DatabaseFunctions(this);
         viewModel = new ViewModelProvider(this).get(ConversationViewModel.class);
+        mqttHelper = new MQTTHelper(this,"leo");
+        mqttHelper.connect();
 
-        Intent serviceIntent = new Intent(this, MqttForegroundService.class);
-        // To prevent service from not being started if it is already running
-        stopService(serviceIntent);
-        ContextCompat.startForegroundService(this, serviceIntent);
-        Log.d("MQTT", "Attempted to start the service.");
+        mqttHelper.setCallback(new MqttCallbackExtended() {
+            @Override
+            public void connectComplete(boolean reconnect, String serverURI) {
+                Log.w("MQTT", "Completed: " + serverURI);
+
+            }
+
+            /*
+                If connection is lost, it tries to reconect
+             */
+            @Override
+            public void connectionLost(Throwable cause) {
+                Log.w("MQTT", "Failed: " + cause.getMessage());
+                mqttHelper.connect();
+            }
+
+            /*
+                Handles message arrive
+                message should be:
+                userReceiver_userSender_content_timestamp
+                example:
+                leo_miguel_here is a message_2024-12-14 12:39:47
+             */
+            @Override
+            public void messageArrived(String topic, MqttMessage message) throws Exception {
+                Log.w("MQTT", "Message received!");
+                Message newMessage = null;
+
+                String[] parts = message.toString().split("_");
+                Log.d("MQTT", "For user: " + parts[0].strip());
+                Log.d("MQTT", "Current user: " + viewModel.getLoggedInUserId());
+                if(parts[0].strip().matches(viewModel.getLoggedInUserId())){                    // Message is for current user
+                    newMessage = new Message(0, new User(parts[1]), new User(parts[0]), parts[2], parts[3]);
+                    /*createMessage(
+                            parts[2],
+                            parts[1],
+                            parts[0],
+                            parts[3]
+                    );*/
+                    updateChatDB(newMessage);
+
+                    // -----------------------------------------------------------------
+                    ArrayList<Message> currentMessages = viewModel.getCurrentChat().getMessagesLiveData().getValue();
+                    if (currentMessages == null) {
+                        currentMessages = new ArrayList<>();
+                    }
+
+                    // Add the new message to the current list
+                    currentMessages.add(newMessage);
+
+                    // Update LiveData
+                    if(newMessage.getReceiver().getId().equals(viewModel.getLoggedInUser().getId()))
+                        viewModel.getCurrentChat().getMessagesLiveData().setValue(new ArrayList<>(currentMessages)); // Ensure the LiveData is updated with a new instance
+                    // -----------------------------------------------------------------
+
+
+                    Log.d("MQTT", "Content: " + parts[2]);
+                    Log.d("MQTT", "Timestamp: " + parts[3]);
+                }
+                else{
+                    Log.d("MQTT", "Message is not for user");
+                }
+
+            }
+
+            @Override
+            public void deliveryComplete(IMqttDeliveryToken token) {
+
+            }
+        });
 
 
         Toolbar myToolbar = findViewById(R.id.toolbar);
@@ -99,8 +166,8 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onDestroy() {
         super.onDestroy();
-        if (mqttClient != null) {
-            mqttClient.disconnect();
+        if (mqttHelper != null) {
+            mqttHelper.stop();
             Log.d("MQTT", "Disconnected from MQTT broker");
         }
     }
@@ -191,7 +258,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public boolean createMessage(String content, String sender_id, String receiver_id, String timestamp) throws Exception {
-        mqttHelper.publishMessage(CHATROOM_TOPIC, receiver_id + "_" + sender_id + "_" + content + "_" + timestamp);
+        mqttHelper.publishMessage(receiver_id + "_" + sender_id + "_" + content + "_" + timestamp);
         return databaseFinal.createMessage(content,sender_id,receiver_id);
     }
 
@@ -214,46 +281,6 @@ public class MainActivity extends AppCompatActivity {
 
     public void connectToMqtt(){
         Log.d("MQTT", "Attempting to connect to MQTT...");
-
-        // Set a listener to handle when the MQTT client is ready
-        MqttForegroundService.setOnMqttClientReadyListener(new MqttForegroundService.OnMqttClientReadyListener() {
-            @Override
-            public void onClientReady(MqttAndroidClient client) {
-                mqttClient = MqttForegroundService.getMqttClient();
-                Log.d("MQTT", "MQTT Client: " + mqttClient.toString());
-                mqttHelper = new MQTTHelper(mqttClient, userId);
-                mqttHelper.setCallback(new MqttCallbackExtended() {
-                    @Override
-                    public void connectComplete(boolean reconnect, String serverURI) {
-                        Log.d("MQTT", "Connected to: " + serverURI);
-                        mqttHelper.subscribeToTopic(CHATROOM_TOPIC);
-                        Toast.makeText(MainActivity.this, "Connected to MQTT server: " , Toast.LENGTH_SHORT).show();
-                    }
-
-                    @Override
-                    public void connectionLost(Throwable cause) {
-                        Log.d("MQTT", "Connection lost: " + cause.getMessage());
-                    }
-
-                    @Override
-                    public void messageArrived(String topic, MqttMessage message) {
-                        Message newMessage = mqttHelper.messageArrived(topic, message);
-                        if (newMessage != null){
-                            updateChatDB(newMessage);
-                            Log.d("MQTT", "Message: " + message.toString());
-                        }
-                    }
-
-                    @Override
-                    public void deliveryComplete(IMqttDeliveryToken token) {
-                        Log.d("MQTT", "Delivery complete");
-                    }
-                });
-
-                // Connect to MQTT
-                //mqttHelper.connect();
-            }
-        });
     }
 
 }
