@@ -33,6 +33,7 @@ public class ConversationListFragment extends Fragment {
     RecyclerView recyclerView;
     ConversationViewModel viewModel;
     Adapter adapter;
+    private ArrayList<User> contactedUsers; // Keep the list in the fragment
 
     public ConversationListFragment() {
         // Required empty public constructor
@@ -50,7 +51,6 @@ public class ConversationListFragment extends Fragment {
         Toolbar toolbar = view.findViewById(R.id.toolbarcl);
         AppCompatActivity activity = (AppCompatActivity) getActivity();
 
-        // Set toolbar title
         if (activity != null) {
             activity.setSupportActionBar(toolbar);
             if (activity.getSupportActionBar() != null) {
@@ -58,7 +58,6 @@ public class ConversationListFragment extends Fragment {
             }
         }
 
-        // Set menu and its click listeners
         requireActivity().addMenuProvider(new MenuProvider() {
             @Override
             public void onCreateMenu(@NonNull Menu menu, @NonNull MenuInflater menuInflater) {
@@ -68,7 +67,6 @@ public class ConversationListFragment extends Fragment {
             @Override
             public boolean onMenuItemSelected(@NonNull MenuItem menuItem) {
                 int id = menuItem.getItemId();
-
                 if (id == R.id.arduinoConfigButton) {
                     ((MainActivity) requireActivity()).showArduinoConf();
                 } else if (id == R.id.action_add_chat) {
@@ -85,27 +83,21 @@ public class ConversationListFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        // Check if no problem in the logged user
         User loggedUser = viewModel.getLoggedInUser();
         if (loggedUser == null) {
             Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Get list of chats of the user
-        ArrayList<User> contactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
+        contactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
 
         adapter = new Adapter(contactedUsers, user -> {
             if (user != null) {
-
-                // Retrieve all messages from LiveData
                 ArrayList<Message> allMessages = viewModel.getMessages().getValue();
                 ArrayList<Message> filteredMessages = new ArrayList<>();
 
                 if (allMessages != null) {
-                    // Filter messages exchanged with the selected user
                     for (Message message : allMessages) {
-
                         if ((message.getSender().equals(loggedUser.getId()) && message.getReceiver().equals(user.getId())) ||
                                 (message.getSender().equals(user.getId()) && message.getReceiver().equals(loggedUser.getId()))) {
                             filteredMessages.add(message);
@@ -113,48 +105,56 @@ public class ConversationListFragment extends Fragment {
                     }
                 }
 
-                // Create a new Chat object and set filtered messages
                 Chat chat = new Chat(1, loggedUser, user);
                 chat.setMessages(filteredMessages);
 
-                openConversation(chat); // Open the chat with the retrieved messages
+                openConversation(chat);
             }
-        }, position -> { // Long press handler
-             User user = contactedUsers.get (position);
+        }, position -> {
+            User user = contactedUsers.get(position);
 
-                AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
-                builder.setTitle("Choose an action")
-                        .setMessage("Would you like to erase the chat with " + user.getId() + "?")
-                        .setPositiveButton("Delete", (dialog, which) -> {
-                            contactedUsers.remove(position);
-
-                            viewModel.setContactedUsers(contactedUsers);
-                            ((MainActivity) requireActivity()).deleteChatBetweenUser(loggedUser.getId(), user.getId());
-                            adapter.notifyDataSetChanged();
-                            Toast.makeText(requireContext(), ("Deleted Chat! ") + contactedUsers , Toast.LENGTH_SHORT).show();
-                        })
-                        .setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss())
-                        .show();
-         });
-
-
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+            builder.setTitle("Choose an action")
+                    .setMessage("Would you like to erase the chat with " + user.getId() + "?")
+                    .setPositiveButton("Delete", (dialog, which) -> {
+                        contactedUsers.remove(position);
+                        viewModel.setContactedUsers(contactedUsers);
+                        ((MainActivity) requireActivity()).deleteChatBetweenUser(loggedUser.getId(), user.getId());
+                        adapter.notifyDataSetChanged();
+                        Toast.makeText(requireContext(), "Deleted Chat!", Toast.LENGTH_SHORT).show();
+                    })
+                    .setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss())
+                    .show();
+        });
 
         recyclerView = view.findViewById(R.id.chatList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        refreshContactedUsers();
+    }
 
+    private void refreshContactedUsers() {
+        User loggedUser = viewModel.getLoggedInUser();
+        if (loggedUser == null) {
+            Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
+        ArrayList<User> updatedContactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
 
-    /*
-        Dialog to create new chat with
-        a user
-     */
+        if (!contactedUsers.equals(updatedContactedUsers)) {
+            contactedUsers.clear();
+            contactedUsers.addAll(updatedContactedUsers);
+            adapter.notifyDataSetChanged();
+        }
+    }
+
     public void showCustomDialog() {
-        Log.d("Debug", "ViewModel: " + viewModel);
-        Log.d("Debug", "LoggedInUser: " + (viewModel != null ? viewModel.getLoggedInUser() : "null"));
-
         final Dialog dialog = new Dialog(requireContext());
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setCancelable(true);
@@ -168,8 +168,7 @@ public class ConversationListFragment extends Fragment {
             String chatWith = usernameET.getText().toString();
             MainActivity mainActivity = (MainActivity) requireActivity();
 
-            if ( (!chatWith.isEmpty()) && (!chatWith.equals(loggedUser.getId())) ) {
-
+            if ((!chatWith.isEmpty()) && (!chatWith.equals(loggedUser.getId()))) {
                 dialog.dismiss();
                 mainActivity.showChatFragment(new Chat(1, loggedUser, new User(chatWith)));
             } else {
