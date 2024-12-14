@@ -11,6 +11,7 @@ import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
+import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
@@ -54,6 +55,9 @@ public class MainActivity extends AppCompatActivity {
 
             }
 
+            /*
+                If connection is lost, it tries to reconect
+             */
             @Override
             public void connectionLost(Throwable cause) {
                 Log.w("MQTT", "Failed: " + cause.getMessage());
@@ -84,6 +88,22 @@ public class MainActivity extends AppCompatActivity {
                             parts[3]
                     );*/
                     updateChatDB(newMessage);
+
+                    // -----------------------------------------------------------------
+                    ArrayList<Message> currentMessages = viewModel.getCurrentChat().getMessagesLiveData().getValue();
+                    if (currentMessages == null) {
+                        currentMessages = new ArrayList<>();
+                    }
+
+                    // Add the new message to the current list
+                    currentMessages.add(newMessage);
+
+                    // Update LiveData
+                    if(newMessage.getReceiver().getId().equals(viewModel.getLoggedInUser().getId()))
+                        viewModel.getCurrentChat().getMessagesLiveData().setValue(new ArrayList<>(currentMessages)); // Ensure the LiveData is updated with a new instance
+                    // -----------------------------------------------------------------
+
+
                     Log.d("MQTT", "Content: " + parts[2]);
                     Log.d("MQTT", "Timestamp: " + parts[3]);
                 }
@@ -251,7 +271,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void updateChatDB(Message newMessage){
-        //mqttHelper.publishMessage(newMessage.getReceiver().getId() + "_" + newMessage.getSender().getId() + "_" + newMessage.getContent() + "_" + newMessage.getTimestamp());
         databaseFinal.insertMessage(newMessage);
         loadMessagesFromDB();
     }
