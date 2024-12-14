@@ -127,8 +127,8 @@ public class DatabaseFunctions {
     public boolean deleteChatBetweenUser(String user1, String user2){
         SQLiteDatabase db = dbHelper.getReadableDatabase();
         String query = COLUMN_CHAT_SENDER + " = ? AND " + COLUMN_CHAT_RECEIVER +
-                " = ? OR " + COLUMN_CHAT_RECEIVER + " = ? AND " + COLUMN_CHAT_SENDER + " = ?" ;
-        db.delete(TABLE_MESSAGE,query,new String[]{String.valueOf(user1), String.valueOf(user2),
+                " = ? OR " + COLUMN_CHAT_SENDER + " = ? AND " + COLUMN_CHAT_RECEIVER + " = ?" ;
+        int result = db.delete(TABLE_MESSAGE,query,new String[]{String.valueOf(user1), String.valueOf(user2),
                 String.valueOf(user2), String.valueOf(user1)});
 
         return true;
