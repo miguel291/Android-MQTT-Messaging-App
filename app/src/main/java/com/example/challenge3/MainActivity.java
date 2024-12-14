@@ -259,6 +259,9 @@ public class MainActivity extends AppCompatActivity {
 
     public boolean createMessage(String content, String sender_id, String receiver_id, String timestamp) throws Exception {
         mqttHelper.publishMessage(receiver_id + "_" + sender_id + "_" + content + "_" + timestamp);
+        if(true){ // if in arduino contacts:
+            mqttHelper.publishMessage("arduino" + "_" + sender_id + "_" + content + "_" + timestamp);
+        }
         return databaseFinal.createMessage(content,sender_id,receiver_id);
     }
 
