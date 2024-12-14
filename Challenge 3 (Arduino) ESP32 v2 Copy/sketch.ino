@@ -74,7 +74,6 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length) {
 
   msg = msg.c_str();
   Serial.printf("Topic: %s\n", topic);
-  Serial.printf("Message: %s\n", msg, topic);
 
   int firstUnderscore = msg.indexOf('_');
   int secondUnderscore = msg.indexOf('_', firstUnderscore + 1);
