@@ -12,7 +12,10 @@ import androidx.fragment.app.Fragment;
 import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import android.content.SharedPreferences;
 
+import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -24,12 +27,16 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 
 public class ArduinoConfFragment extends Fragment {
 
     RecyclerView recyclerView;
     ConversationViewModel viewModel;
-
+    SharedPreferences sharedPreferences;
+    Set<String> selectListTemp;
     public ArduinoConfFragment() {
     }
 
@@ -63,6 +70,10 @@ public class ArduinoConfFragment extends Fragment {
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
+        sharedPreferences = requireContext().getSharedPreferences("arduinoConf", Context.MODE_PRIVATE);
+        String setUsers = sharedPreferences.getString("selectedUsers", "");
+        selectListTemp = new HashSet<>(Arrays.asList(setUsers.split(",")));
+
 
         // Set up the menu
         requireActivity().addMenuProvider(new MenuProvider() {
@@ -117,15 +128,47 @@ public class ArduinoConfFragment extends Fragment {
 
                     // Handle checkbox state
                     userCheckbox.setOnCheckedChangeListener(null); // Reset listener
-                    userCheckbox.setChecked(false); // Default unchecked
 
+                    if(selectListTemp.contains(user.getId())) // if not in list
+                        userCheckbox.setChecked(true); // Default unchecked
+                    else
+                        userCheckbox.setChecked(false); // Default unchecked
+
+
+                    Log.i("USER CONF", "tou a criar " + user.getId());
                     userCheckbox.setOnCheckedChangeListener((buttonView, isChecked) -> {
-                        if (isChecked) {
-                            // Checkbox selected
-                            Toast.makeText(requireContext(), user.getId() + " selected", Toast.LENGTH_SHORT).show();
-                        } else {
-                            // Checkbox deselected
-                            Toast.makeText(requireContext(), user.getId() + " deselected", Toast.LENGTH_SHORT).show();
+                        if (isChecked) { // Checkbox selected
+
+                            // get last list
+                            String setUsers = sharedPreferences.getString("selectedUsers", "");
+                            Set<String> selectList = new HashSet<>(Arrays.asList(setUsers.split(",")));
+
+                            // add selected user
+                            selectList.add(user.getId());
+
+                            // save preferences
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            String setString = TextUtils.join(",", selectList);
+                            editor.putString("selectedUsers", setString);
+                            editor.apply();
+                            Log.i("USER CONF", setString);
+
+
+                        } else { // Checkbox deselected
+
+                            // get last list
+                            String setUsers = sharedPreferences.getString("selectedUsers", "");
+                            Set<String> selectList = new HashSet<>(Arrays.asList(setUsers.split(",")));
+
+                            // remove deselected user
+                            selectList.remove(user.getId());
+
+                            // save preferences
+                            SharedPreferences.Editor editor = sharedPreferences.edit();
+                            String setString = TextUtils.join(",", selectList);
+                            editor.putString("selectedUsers", setString);
+                            editor.apply();
+                            Log.i("USER CONF", setString);
                         }
                     });
                 }
