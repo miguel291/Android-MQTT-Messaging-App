@@ -86,17 +86,20 @@ public class ConversationListFragment extends Fragment {
 
     private void refreshContactedUsers() {
         User loggedUser = viewModel.getLoggedInUser();
+
         if (loggedUser == null) {
             Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
             return;
         }
 
         // Fetch the updated contacted users
+        viewModel.updateContactedUsers(loggedUser);
         ArrayList<User> updatedContactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
 
         if (updatedContactedUsers == null) {
             updatedContactedUsers = new ArrayList<>();
         }
+
 
         // Update ViewModel and adapter
         if (!updatedContactedUsers.equals(viewModel.getContactedUsers().getValue())) {
@@ -135,6 +138,7 @@ public class ConversationListFragment extends Fragment {
                 openConversation(chat);
             }
         }, position -> {
+            viewModel.updateContactedUsers(loggedUser);
             User user = viewModel.getContactedUsers().getValue().get(position);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -166,14 +170,10 @@ public class ConversationListFragment extends Fragment {
         // Observe messages to automatically update the contacted users
         viewModel.getMessages().observe(getViewLifecycleOwner(), messages -> {
             if (messages != null) {
-                viewModel.updateContactedUsersForNewMessage(loggedUser);
+                viewModel.updateContactedUsers(loggedUser);
             }
         });
     }
-
-
-
-
 
 
     public void showCustomDialog() {

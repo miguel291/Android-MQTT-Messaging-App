@@ -9,6 +9,9 @@ import androidx.lifecycle.ViewModel;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
+import java.util.Map;
 import java.util.Set;
 
 public class ConversationViewModel extends ViewModel {
@@ -24,7 +27,6 @@ public class ConversationViewModel extends ViewModel {
     private Chat currentChat;
 
     public ConversationViewModel() {
-        contactedUsers = new MutableLiveData<>(new ArrayList<>()); // Initialize to avoid null
     }
 
     public void setSelectListArduino(Set<String> selectListArduino) {
@@ -115,19 +117,67 @@ public class ConversationViewModel extends ViewModel {
         }
 
         currentMessages.add(message);
-        messages.setValue(currentMessages); // Notifica gli observer
+        messages.setValue(currentMessages); // Notify observers
 
-        // Aggiorna automaticamente i contactedUsers
+        // Automatic update of the contactedUsers
         User loggedInUser = getLoggedInUser();
         if (loggedInUser != null) {
-            updateContactedUsersForNewMessage(loggedInUser);
+            updateContactedUsers(loggedInUser);
         }
     }
 
-    public void updateContactedUsersForNewMessage(User loggedInUser) {
+    public void updateContactedUsers(User loggedInUser) {
+        if (loggedInUser == null) return;
+
+        // Retrieve and sort messages by time (most recent first)
+        ArrayList<Message> sortedMessages = new ArrayList<>(messages.getValue());
+        sortedMessages.sort((m1, m2) -> m2.getTimestamp().compareTo(m1.getTimestamp()));
+
+        // Map to store the most recent message for each sender-receiver pair
+        Map<String, Message> mostRecentMessages = new LinkedHashMap<>();
+
+        for (Message message : sortedMessages) {
+            // Create a unique key for each sender-receiver pair
+            String pairKey = createPairKey(message.getSender(), message.getReceiver());
+            if (!mostRecentMessages.containsKey(pairKey)) {
+                mostRecentMessages.put(pairKey, message); // Add only the most recent message for this pair
+            }
+        }
+
+        // Extract distinct users from the most recent messages
+        ArrayList<User> updatedContactedUsers = new ArrayList<>();
+        for (Message message : mostRecentMessages.values()) {
+            if (message.getSender().getId().equals(loggedInUser.getId())) {
+                if (!updatedContactedUsers.contains(message.getReceiver())) {
+                    updatedContactedUsers.add(message.getReceiver());
+                }
+            } else if (message.getReceiver().getId().equals(loggedInUser.getId())) {
+                if (!updatedContactedUsers.contains(message.getSender())) {
+                    updatedContactedUsers.add(message.getSender());
+                }
+            }
+        }
+
+        // Update the contacted users
+        contactedUsers.setValue(updatedContactedUsers);
+    }
+
+    // Helper method to create a unique key for a sender-receiver pair
+    private String createPairKey(User sender, User receiver) {
+        String id1 = sender.getId();
+        String id2 = receiver.getId();
+        // Combine the IDs in a consistent order (e.g., alphabetically)
+        return id1.compareTo(id2) < 0 ? id1 + ":" + id2 : id2 + ":" + id1;
+    }
+
+
+
+    /*public void updateContactedUsersForNewMessage(User loggedInUser) {
         if (loggedInUser == null) return;
 
         ArrayList<User> updatedContactedUsers = new ArrayList<>();
+
+
         for (Message message : messages.getValue()) {
             if (message.getSender().getId().equals(loggedInUser.getId())) {
                 if (!updatedContactedUsers.contains(message.getReceiver())) {
@@ -141,7 +191,7 @@ public class ConversationViewModel extends ViewModel {
         }
 
         contactedUsers.setValue(updatedContactedUsers); // Aggiorna i contatti
-    }
+    }*/
 
 
     public ArrayList<Message> getMessagesBetweenUsers(String userId1, String userId2) {
