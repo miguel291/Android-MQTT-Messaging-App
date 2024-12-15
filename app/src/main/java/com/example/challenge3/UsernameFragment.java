@@ -21,6 +21,7 @@ public class UsernameFragment extends Fragment {
 
     private SharedPreferences sharedPreferences;
     private EditText editTextId;
+    MainActivity activity = (MainActivity) requireActivity();
 
     @Nullable
     @Override
@@ -45,18 +46,22 @@ public class UsernameFragment extends Fragment {
         loginBtn.setOnClickListener(v -> {
             String id = editTextId.getText().toString().trim(); // Get the string value
             if (isAlphanumeric(id)) {
-                User  newUser = new User(id);
+
+                User newUser = null;
+                if(activity.userExists(id)) {
+                    newUser = activity.getViewModel().getUserById(id);
+                }
+                else{
+                    newUser = new User(id);
+                }
                 saveUser(newUser);
 
-                // Directly call MainActivity's method
-                MainActivity activity = (MainActivity) requireActivity();
                 activity.showChatList(); // Switch fragment
                 createToast("Welcome " + id);
             } else {
                 editTextId.setError("Username must be an alphanumeric code");
             }
         });
-
         return view;
     }
 
@@ -74,7 +79,6 @@ public class UsernameFragment extends Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("USER_ID", user.getId());
         editor.apply();
-        MainActivity activity = (MainActivity) requireActivity();
         activity.getViewModel().setLoggedInUser(user);
         activity.addUserToDB(user);
     }
@@ -88,5 +92,4 @@ public class UsernameFragment extends Fragment {
         Toast toast = Toast.makeText(context, text, duration);
         toast.show();
     }
-
 }

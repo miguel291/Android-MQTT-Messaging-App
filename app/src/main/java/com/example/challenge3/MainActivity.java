@@ -257,7 +257,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void loadMessagesFromDB(){
-        ArrayList<Message> al = databaseFinal.getAllMessages();
         viewModel.setMessages(databaseFinal.getAllMessages());
     }
 
@@ -287,7 +286,9 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public void addUserToDB(User newUser){
-        databaseFinal.insertUser(newUser);
+        if(!databaseFinal.userExists(newUser.getId())) {
+            databaseFinal.insertUser(newUser);
+        }
     }
 
     public void connectToMqtt(){

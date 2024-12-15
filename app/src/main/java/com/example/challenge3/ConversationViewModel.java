@@ -95,11 +95,7 @@ public class ConversationViewModel extends ViewModel {
     }
 
     public ArrayList<User> getAllUsers() {
-        ArrayList<User> usersArrayList = new ArrayList<User>();
-        for (User user : users.getValue()) {
-            usersArrayList.add(user);
-        }
-        return usersArrayList;
+        return users.getValue();
     }
 
     public void addUser(User user){
@@ -170,30 +166,6 @@ public class ConversationViewModel extends ViewModel {
         return id1.compareTo(id2) < 0 ? id1 + ":" + id2 : id2 + ":" + id1;
     }
 
-
-
-    /*public void updateContactedUsersForNewMessage(User loggedInUser) {
-        if (loggedInUser == null) return;
-
-        ArrayList<User> updatedContactedUsers = new ArrayList<>();
-
-
-        for (Message message : messages.getValue()) {
-            if (message.getSender().getId().equals(loggedInUser.getId())) {
-                if (!updatedContactedUsers.contains(message.getReceiver())) {
-                    updatedContactedUsers.add(message.getReceiver());
-                }
-            } else if (message.getReceiver().getId().equals(loggedInUser.getId())) {
-                if (!updatedContactedUsers.contains(message.getSender())) {
-                    updatedContactedUsers.add(message.getSender());
-                }
-            }
-        }
-
-        contactedUsers.setValue(updatedContactedUsers); // Aggiorna i contatti
-    }*/
-
-
     public ArrayList<Message> getMessagesBetweenUsers(String userId1, String userId2) {
         ArrayList<Message> messagesList = new ArrayList<>();
 
@@ -205,5 +177,4 @@ public class ConversationViewModel extends ViewModel {
         }
         return messagesList;
     }
-
 }

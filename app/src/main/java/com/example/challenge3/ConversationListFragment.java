@@ -39,7 +39,7 @@ public class ConversationListFragment extends Fragment {
     }
 
     public void loadViewModel() {
-        viewModel = new ViewModelProvider(getActivity()).get(ConversationViewModel.class);
+        viewModel = new ViewModelProvider(requireActivity()).get(ConversationViewModel.class);
     }
 
     @Override
@@ -101,10 +101,7 @@ public class ConversationListFragment extends Fragment {
         }
 
 
-        // Update ViewModel and adapter
-        if (!updatedContactedUsers.equals(viewModel.getContactedUsers().getValue())) {
-            viewModel.setContactedUsers(updatedContactedUsers); // Update ViewModel LiveData
-        }
+        viewModel.updateContactedUsers(loggedUser);
     }
 
     @Override
@@ -138,7 +135,6 @@ public class ConversationListFragment extends Fragment {
                 openConversation(chat);
             }
         }, position -> {
-            viewModel.updateContactedUsers(loggedUser);
             User user = viewModel.getContactedUsers().getValue().get(position);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
