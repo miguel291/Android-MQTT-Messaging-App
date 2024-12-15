@@ -14,7 +14,6 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -80,6 +79,32 @@ public class ConversationListFragment extends Fragment {
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        refreshContactedUsers();
+    }
+
+    private void refreshContactedUsers() {
+        User loggedUser = viewModel.getLoggedInUser();
+        if (loggedUser == null) {
+            Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        // Fetch the updated contacted users
+        ArrayList<User> updatedContactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
+
+        if (updatedContactedUsers == null) {
+            updatedContactedUsers = new ArrayList<>();
+        }
+
+        // Update ViewModel and adapter
+        if (!updatedContactedUsers.equals(viewModel.getContactedUsers().getValue())) {
+            viewModel.setContactedUsers(updatedContactedUsers); // Update ViewModel LiveData
+        }
+    }
+
+    @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
@@ -89,9 +114,8 @@ public class ConversationListFragment extends Fragment {
             return;
         }
 
-        contactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
-
-        adapter = new Adapter(contactedUsers, user -> {
+        // adapter configuration
+        adapter = new Adapter(new ArrayList<>(), user -> {
             if (user != null) {
                 ArrayList<Message> allMessages = viewModel.getMessages().getValue();
                 ArrayList<Message> filteredMessages = new ArrayList<>();
@@ -111,16 +135,16 @@ public class ConversationListFragment extends Fragment {
                 openConversation(chat);
             }
         }, position -> {
-            User user = contactedUsers.get(position);
+            User user = viewModel.getContactedUsers().getValue().get(position);
 
             AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
             builder.setTitle("Choose an action")
                     .setMessage("Would you like to erase the chat with " + user.getId() + "?")
                     .setPositiveButton("Delete", (dialog, which) -> {
-                        contactedUsers.remove(position);
-                        viewModel.setContactedUsers(contactedUsers);
+                        ArrayList<User> updatedUsers = viewModel.getContactedUsers().getValue();
+                        updatedUsers.remove(position);
+                        viewModel.setContactedUsers(updatedUsers);
                         ((MainActivity) requireActivity()).deleteChatBetweenUser(loggedUser.getId(), user.getId());
-                        adapter.notifyDataSetChanged();
                         Toast.makeText(requireContext(), "Deleted Chat!", Toast.LENGTH_SHORT).show();
                     })
                     .setNeutralButton("Cancel", (dialog, which) -> dialog.dismiss())
@@ -130,29 +154,27 @@ public class ConversationListFragment extends Fragment {
         recyclerView = view.findViewById(R.id.chatList);
         recyclerView.setAdapter(adapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(requireContext()));
+
+        // Observe contactedUsers
+        viewModel.getContactedUsers().observe(getViewLifecycleOwner(), updatedContactedUsers -> {
+            if (updatedContactedUsers != null) {
+                adapter.updateContactedUsers(updatedContactedUsers);
+                adapter.notifyDataSetChanged();
+            }
+        });
+
+        // Observe messages to automatically update the contacted users
+        viewModel.getMessages().observe(getViewLifecycleOwner(), messages -> {
+            if (messages != null) {
+                viewModel.updateContactedUsersForNewMessage(loggedUser);
+            }
+        });
     }
 
-    @Override
-    public void onResume() {
-        super.onResume();
-        refreshContactedUsers();
-    }
 
-    private void refreshContactedUsers() {
-        User loggedUser = viewModel.getLoggedInUser();
-        if (loggedUser == null) {
-            Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
-            return;
-        }
 
-        ArrayList<User> updatedContactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
 
-        if (!contactedUsers.equals(updatedContactedUsers)) {
-            contactedUsers.clear();
-            contactedUsers.addAll(updatedContactedUsers);
-            adapter.notifyDataSetChanged();
-        }
-    }
+
 
     public void showCustomDialog() {
         final Dialog dialog = new Dialog(requireContext());

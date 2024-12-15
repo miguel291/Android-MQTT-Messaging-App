@@ -17,13 +17,14 @@ public class ConversationViewModel extends ViewModel {
     private MutableLiveData<ArrayList<User>> users = new MutableLiveData<>(new ArrayList<>());
     private MutableLiveData<ArrayList<User>> contactedUsers = new MutableLiveData<>(new ArrayList<>());
     private MutableLiveData<Set<String>> selectListArduino = new MutableLiveData<>(new HashSet());
+
     // In your ViewModel, set the logged-in user when the user logs in
     private User loggedInUser;
     private User chattingWithUser;
     private Chat currentChat;
 
     public ConversationViewModel() {
-       //Initialize the viewmodel
+        contactedUsers = new MutableLiveData<>(new ArrayList<>()); // Initialize to avoid null
     }
 
     public void setSelectListArduino(Set<String> selectListArduino) {
@@ -108,7 +109,38 @@ public class ConversationViewModel extends ViewModel {
     }
 
     public void addMessage(Message message) {
-        messages.getValue().add(message);
+        ArrayList<Message> currentMessages = messages.getValue();
+        if (currentMessages == null) {
+            currentMessages = new ArrayList<>();
+        }
+
+        currentMessages.add(message);
+        messages.setValue(currentMessages); // Notifica gli observer
+
+        // Aggiorna automaticamente i contactedUsers
+        User loggedInUser = getLoggedInUser();
+        if (loggedInUser != null) {
+            updateContactedUsersForNewMessage(loggedInUser);
+        }
+    }
+
+    public void updateContactedUsersForNewMessage(User loggedInUser) {
+        if (loggedInUser == null) return;
+
+        ArrayList<User> updatedContactedUsers = new ArrayList<>();
+        for (Message message : messages.getValue()) {
+            if (message.getSender().getId().equals(loggedInUser.getId())) {
+                if (!updatedContactedUsers.contains(message.getReceiver())) {
+                    updatedContactedUsers.add(message.getReceiver());
+                }
+            } else if (message.getReceiver().getId().equals(loggedInUser.getId())) {
+                if (!updatedContactedUsers.contains(message.getSender())) {
+                    updatedContactedUsers.add(message.getSender());
+                }
+            }
+        }
+
+        contactedUsers.setValue(updatedContactedUsers); // Aggiorna i contatti
     }
 
 
@@ -123,6 +155,5 @@ public class ConversationViewModel extends ViewModel {
         }
         return messagesList;
     }
-
 
 }

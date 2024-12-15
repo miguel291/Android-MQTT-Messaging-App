@@ -1,23 +1,19 @@
 package com.example.challenge3;
 
-import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
-import androidx.fragment.app.FragmentTransaction;
 import androidx.lifecycle.ViewModelProvider;
 
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
-import android.widget.Toast;
 
 import org.eclipse.paho.client.mqttv3.IMqttDeliveryToken;
 import org.eclipse.paho.client.mqttv3.MqttCallbackExtended;
@@ -27,8 +23,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Set;
-
-import info.mqtt.android.service.MqttAndroidClient;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -55,7 +49,6 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void connectComplete(boolean reconnect, String serverURI) {
                 Log.w("MQTT", "Completed: " + serverURI);
-
             }
 
             /*
@@ -238,6 +231,7 @@ public class MainActivity extends AppCompatActivity {
         viewModel.setCurrentChat(chat);
 
         findViewById(R.id.toolbar).setVisibility(View.GONE); // Show toolbar or customize as needed
+
         getSupportFragmentManager()
                 .beginTransaction()
                 .addToBackStack(null) // Add to back stack if back navigation is needed
@@ -277,9 +271,11 @@ public class MainActivity extends AppCompatActivity {
         return databaseFinal.createMessage(content,sender_id,receiver_id);
     }
 
-    public ArrayList<User> getUserWithChat(String userID){
-        return databaseFinal.getUserChats(userID);
+    public ArrayList<User> getUserWithChat(String userID) {
+        ArrayList<User> users = databaseFinal.getUserChats(userID);
+        return users != null ? users : new ArrayList<>();
     }
+
 
     public boolean deleteChatBetweenUser(String user1, String user2){
         return databaseFinal.deleteChatBetweenUser(user1, user2);
@@ -296,6 +292,22 @@ public class MainActivity extends AppCompatActivity {
 
     public void connectToMqtt(){
         Log.d("MQTT", "Attempting to connect to MQTT...");
+    }
+
+
+    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+        String[] parts = mqttMessage.toString().split("_");
+        String receiverId = parts[0].strip();
+        String senderId = parts[1].strip();
+        String content = parts[2];
+        String timestamp = parts[3];
+
+        if (receiverId.equals(viewModel.getLoggedInUserId())) {
+            Message newMessage = new Message(0, new User(senderId), new User(receiverId), content, timestamp);
+
+            viewModel.addMessage(newMessage); // Auto notify the viewModel
+            updateChatDB(newMessage); // Save to DB
+        }
     }
 
 }

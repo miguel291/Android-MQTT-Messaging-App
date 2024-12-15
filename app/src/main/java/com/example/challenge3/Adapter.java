@@ -9,10 +9,11 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
 
-    private final ArrayList<User> users;
+    private ArrayList<User> users;
     private final OnItemClickListener clickListener;
     private final OnItemLongClickListener longClickListener;
 
@@ -21,6 +22,8 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
         this.clickListener = clickListener;
         this.longClickListener = longClickListener;
     }
+
+
 
     @NonNull
     @Override
@@ -39,9 +42,6 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
             return true;
         });
     }
-
-
-
 
     @Override
     public int getItemCount() {
@@ -64,6 +64,15 @@ public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
     public interface OnItemLongClickListener {
         void onItemLongClick(int position);
     }
+
+    public void updateContactedUsers(ArrayList<User> users) {
+        if (users == null) {
+            users = new ArrayList<>();
+        }
+        this.users.clear();
+        this.users.addAll(users);
+    }
+
 }
 
 /*public class Adapter extends RecyclerView.Adapter<Adapter.ViewHolder> {
