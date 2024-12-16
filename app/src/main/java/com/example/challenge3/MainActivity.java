@@ -31,6 +31,7 @@ public class MainActivity extends AppCompatActivity {
     MQTTHelper mqttHelper;
     private static final String CHATROOM_TOPIC = "chatroom1";
     String userId;
+    Message lastMessageReceived = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,7 +54,7 @@ public class MainActivity extends AppCompatActivity {
 
             /*
                 If connection is lost, it tries to reconect
-             */
+            */
             @Override
             public void connectionLost(Throwable cause) {
                 Log.w("MQTT", "Failed: " + cause.getMessage());
@@ -61,12 +62,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             /*
-                Handles message arrive
-                message should be:
-                userReceiver_userSender_content_timestamp
-                example:
-                leo_miguel_here is a message_2024-12-14 12:39:47
-             */
+    Handles message arrive
+    message should be:
+    userReceiver_userSender_content_timestamp
+    example:
+    leo_miguel_here is a message_2024-12-14 12:39:47
+ */
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 Log.w("MQTT", "Message received!");
@@ -144,7 +145,10 @@ public class MainActivity extends AppCompatActivity {
 
         // Load data from DB into ViewModel
         loadUserFromDB(); // Load existing users
-        loadMessagesFromDB(); // Messages should not depend on logged user
+        loadMessagesFromDB(); // Load existing messages
+
+        databaseFinal.printMessageTable();
+        databaseFinal.printUserTable();
 
         if (userId != null) {
             User loggedUser = viewModel.getUserById(userId);
@@ -246,12 +250,6 @@ public class MainActivity extends AppCompatActivity {
 
     /* Load users from db to ViewModel */
     public void loadUserFromDB() {
-
-        // Create random users if no users exist
-        if (databaseFinal.getAllUsers().isEmpty()) {
-            databaseFinal.randomUsers();
-        }
-
         // Retrieve all users from the database and set them in the ViewModel
         viewModel.setUsers(databaseFinal.getAllUsers());
     }
@@ -271,6 +269,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public ArrayList<User> getUserWithChat(String userID) {
+        databaseFinal.debugDatabase();
+        databaseFinal.tableExists();
         ArrayList<User> users = databaseFinal.getUserChats(userID);
         return users != null ? users : new ArrayList<>();
     }
@@ -280,10 +280,17 @@ public class MainActivity extends AppCompatActivity {
         return databaseFinal.deleteChatBetweenUser(user1, user2);
     }
 
-    public void updateChatDB(Message newMessage){
-        databaseFinal.insertMessage(newMessage);
-        loadMessagesFromDB();
+    public void updateChatDB(Message newMessage) {
+        if (!databaseFinal.userExists(newMessage.getReceiver().getId())) {
+            Log.d("DatabaseDebug", "Receiver does not exist, creating user: " + newMessage.getReceiver().getId());
+            databaseFinal.insertUser(newMessage.getReceiver());
+        }
+
+        databaseFinal.insertMessage(newMessage); // Salva il messaggio
+        loadMessagesFromDB(); // Ricarica tutti i messaggi nel ViewModel
+        Log.d("DatabaseDebug", "Message saved: " + newMessage.getContent());
     }
+
 
     public void addUserToDB(User newUser){
         if(!databaseFinal.userExists(newUser.getId())) {
@@ -310,5 +317,7 @@ public class MainActivity extends AppCompatActivity {
             updateChatDB(newMessage); // Save to DB
         }
     }
+
+
 }
 

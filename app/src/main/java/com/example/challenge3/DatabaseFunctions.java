@@ -67,17 +67,14 @@ public class DatabaseFunctions {
     public boolean createMessage(String content, String senderId, String receiverId) {
         SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-        if (!userExists(senderId) || !userExists(receiverId)) {
-            if(!userExists(senderId)){
-                createUser(senderId);
-                Log.i("DatabaseFunctions", "External sender created!");
-
-            }else{
-                Log.e("DatabaseFunctions", "Receiver does not exist in the database.");
-                return false;
-            }
+        if (!userExists(senderId)) {
+            createUser(senderId);
+            Log.i("DatabaseFunctions", "External sender created!");
         }
-
+        if (!userExists(receiverId)) {
+            createUser(receiverId);
+            Log.i("DatabaseFunctions", "External receiver created!");
+        }
 
         ContentValues values = new ContentValues();
         values.put(COLUMN_CHAT_CONTENT, content);
@@ -85,7 +82,6 @@ public class DatabaseFunctions {
         values.put(COLUMN_CHAT_RECEIVER, receiverId);
         values.put(COLUMN_CHAT_TIMESTAMP, new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date()));
 
-        //long result = db.insert(TABLE_MESSAGE, null, values);
         //Log.i("DATAFINAL", ("Message added: " + String.valueOf(result) + " content: " + content));
 
         //return result != -1;
@@ -164,30 +160,104 @@ public class DatabaseFunctions {
 
     // Retrieve all chats (only the users list) for a specific user (the logged one)
     // Key changes in database query consistency.
-    public ArrayList<User> getUserChats(String loggedUserId) {
-        SQLiteDatabase db = dbHelper.getReadableDatabase();
-        String query = "SELECT DISTINCT CASE " +
-                "WHEN " + COLUMN_CHAT_SENDER + " = ? THEN " + COLUMN_CHAT_RECEIVER + " " +
-                "WHEN " + COLUMN_CHAT_RECEIVER + " = ? THEN " + COLUMN_CHAT_SENDER + " " +
-                "END AS contact " +
-                "FROM " + TABLE_MESSAGE + " " +
-                "WHERE " + COLUMN_CHAT_SENDER + " = ? OR " + COLUMN_CHAT_RECEIVER + " = ?";
-
+    /*public ArrayList<User> getUserChats(String loggedUserId) {
         ArrayList<User> contactedUsers = new ArrayList<>();
-        Cursor cursor = db.rawQuery(query, new String[]{loggedUserId, loggedUserId, loggedUserId, loggedUserId});
+        SQLiteDatabase db = null;
+        Cursor cursor = null;
+
+        try {
+            // Ottieni un'istanza leggibile del database
+            db = dbHelper.getReadableDatabase();
+
+            // Query SQL per determinare i contatti unici
+            String query = "SELECT DISTINCT CASE " +
+                    "WHEN " + COLUMN_CHAT_SENDER + " = ? THEN " + COLUMN_CHAT_RECEIVER + " " +
+                    "WHEN " + COLUMN_CHAT_RECEIVER + " = ? THEN " + COLUMN_CHAT_SENDER + " " +
+                    "END AS contact " +
+                    "FROM " + TABLE_MESSAGE + " " +
+                    "WHERE " + COLUMN_CHAT_SENDER + " = ? OR " + COLUMN_CHAT_RECEIVER + " = ?";
+
+            // Esegui la query
+            cursor = db.rawQuery(query, new String[]{loggedUserId, loggedUserId, loggedUserId, loggedUserId});
+
+            // Itera sui risultati
+            if (cursor.moveToFirst()) {
+                do {
+                    String contactId = cursor.getString(cursor.getColumnIndexOrThrow("contact"));
+                    contactedUsers.add(new User(contactId));
+                } while (cursor.moveToNext());
+            }
+        } catch (Exception e) {
+            Log.e("DatabaseError", "Error retrieving user chats: ", e);
+        } finally {
+            // Chiudi il cursore e il database se non sono nulli
+            if (cursor != null) cursor.close();
+            if (db != null) db.close();
+        }
+
+        return contactedUsers;
+    }*/
+
+    public void debugDatabase() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT * FROM " + TABLE_MESSAGE, null);
+        if (cursor.moveToFirst()) {
+            do {
+                Log.d("DatabaseDebug", "SENDER: " + cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_SENDER)) +
+                        ", RECEIVER: " + cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_RECEIVER)));
+            } while (cursor.moveToNext());
+        } else {
+            Log.d("DatabaseDebug", "No rows in TABLE_MESSAGE");
+        }
+        cursor.close();
+    }
+
+    public void tableExists() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        Cursor cursor = db.rawQuery("SELECT name FROM sqlite_master WHERE type='table'", null);
+        if (cursor.moveToFirst()) {
+            do {
+                Log.d("DatabaseDebug", "Table: " + cursor.getString(0));
+            } while (cursor.moveToNext());
+        } else {
+            Log.d("DatabaseDebug", "No tables found in the database.");
+        }
+        cursor.close();
+    }
+
+
+    public ArrayList<User> getUserChats(String loggedUserId) {
+        ArrayList<User> contactedUsers = new ArrayList<>();
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+
+        String query = "SELECT DISTINCT " + COLUMN_CHAT_RECEIVER + " AS contact " +
+                "FROM " + TABLE_MESSAGE + " WHERE " + COLUMN_CHAT_SENDER + " = ? " +
+                "UNION " +
+                "SELECT DISTINCT " + COLUMN_CHAT_SENDER + " AS contact " +
+                "FROM " + TABLE_MESSAGE + " WHERE " + COLUMN_CHAT_RECEIVER + " = ?";
+
+        Cursor cursor = db.rawQuery(query, new String[]{loggedUserId, loggedUserId});
+        Log.d("DatabaseDebug", "Query executed for user: " + loggedUserId);
 
         if (cursor.moveToFirst()) {
             do {
                 String contactId = cursor.getString(cursor.getColumnIndexOrThrow("contact"));
                 contactedUsers.add(new User(contactId));
+                Log.d("DatabaseDebug", "Chat with: " + contactId);
             } while (cursor.moveToNext());
+        } else {
+            Log.d("DatabaseDebug", "No chats found for user: " + loggedUserId);
         }
 
         cursor.close();
         db.close();
-
         return contactedUsers;
     }
+
+
+
 
 
     /* Retrieve all messages where user_id is sender or receiver */
@@ -340,5 +410,63 @@ public class DatabaseFunctions {
             }
         }
     }
+
+    public void printMessageTable() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = null;
+
+        try {
+            cursor = db.rawQuery("SELECT * FROM " + TABLE_MESSAGE, null);
+
+            if (cursor.moveToFirst()) {
+                Log.d("TableMessageDebug", "----- TABLE_MESSAGE CONTENTS -----");
+                do {
+                    int messageId = cursor.getInt(cursor.getColumnIndexOrThrow(COLUMN_MESSAGE_ID));
+                    String sender = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_SENDER));
+                    String receiver = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_RECEIVER));
+                    String content = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_CONTENT));
+                    String timestamp = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_CHAT_TIMESTAMP));
+
+                    Log.d("TableMessageDebug", "ID: " + messageId +
+                            ", Sender: " + sender +
+                            ", Receiver: " + receiver +
+                            ", Content: " + content +
+                            ", Timestamp: " + timestamp);
+                } while (cursor.moveToNext());
+            } else {
+                Log.d("TableMessageDebug", "TABLE_MESSAGE is empty.");
+            }
+        } catch (Exception e) {
+            Log.e("TableMessageDebug", "Error reading TABLE_MESSAGE: ", e);
+        } finally {
+            if (cursor != null) cursor.close();
+            db.close();
+        }
+    }
+
+    public void printUserTable() {
+        SQLiteDatabase db = dbHelper.getReadableDatabase();
+        Cursor cursor = null;
+
+        try {
+            cursor = db.rawQuery("SELECT * FROM " + TABLE_USER, null);
+
+            if (cursor.moveToFirst()) {
+                Log.d("TableUserDebug", "----- TABLE_USER CONTENTS -----");
+                do {
+                    String username = cursor.getString(cursor.getColumnIndexOrThrow(COLUMN_USER_USERNAME));
+                    Log.d("TableUserDebug", "Username: " + username);
+                } while (cursor.moveToNext());
+            } else {
+                Log.d("TableUserDebug", "TABLE_USER is empty.");
+            }
+        } catch (Exception e) {
+            Log.e("TableUserDebug", "Error reading TABLE_USER: ", e);
+        } finally {
+            if (cursor != null) cursor.close();
+            db.close();
+        }
+    }
+
 
 }

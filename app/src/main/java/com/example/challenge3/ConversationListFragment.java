@@ -76,6 +76,7 @@ public class ConversationListFragment extends Fragment {
             }
         }, getViewLifecycleOwner());
 
+        refreshContactedUsers();
         return view;
     }
 
@@ -83,12 +84,13 @@ public class ConversationListFragment extends Fragment {
     public void onResume() {
         super.onResume();
         Log.d("ConversationListFragment", "onResume called");
-        refreshContactedUsers();
     }
 
     private void refreshContactedUsers() {
         Log.d("ConversationListFragment", "refreshContactedUsers called");
         User loggedUser = viewModel.getLoggedInUser();
+
+        Log.d("ConversationListFragment", "Logged user: " + (loggedUser != null ? loggedUser.getId() : "null"));
 
         if (loggedUser == null) {
             Log.e("ConversationListFragment", "Logged user is null");
