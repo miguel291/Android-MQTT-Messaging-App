@@ -95,9 +95,10 @@ void callbackMQTT(char *topic, byte *payload, unsigned int length) {
   Serial.printf("Message: %s\n", content.c_str());
   Serial.printf("Timestamp: %s\n", timestamp.c_str());
   
-  printMessageOnScreen(receiver, content);
-  blinkLed(2000);
-  
+  if(sender.equals("arduino")){
+    printMessageOnScreen(receiver, content);
+    blinkLed(2000);
+  }  
 }
 
 

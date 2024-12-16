@@ -61,12 +61,12 @@ public class MainActivity extends AppCompatActivity {
             }
 
             /*
-    Handles message arrive
-    message should be:
-    userReceiver_userSender_content_timestamp
-    example:
-    leo_miguel_here is a message_2024-12-14 12:39:47
- */
+                Handles message arrive
+                message should be:
+                userReceiver_userSender_content_timestamp
+                example:
+                leo_miguel_here is a message_2024-12-14 12:39:47
+             */
             @Override
             public void messageArrived(String topic, MqttMessage message) throws Exception {
                 Log.w("MQTT", "Message received!");
@@ -302,7 +302,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+    /*public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
         String[] parts = mqttMessage.toString().split("_");
         String receiverId = parts[0].strip();
         String senderId = parts[1].strip();
@@ -315,6 +315,37 @@ public class MainActivity extends AppCompatActivity {
             viewModel.addMessage(newMessage); // Auto notify the viewModel
             updateChatDB(newMessage); // Save to DB
         }
+    }*/
+
+    public void messageArrived(String topic, MqttMessage mqttMessage) throws Exception {
+        Log.w("MQTT", "Message received!");
+        String[] parts = mqttMessage.toString().split("_");
+
+        String receiverId = parts[0].strip();
+        String senderId = parts[1].strip();
+        String content = parts[2];
+        String timestamp = parts[3];
+
+        if (receiverId.equals(viewModel.getLoggedInUserId())) {
+            Message newMessage = new Message(0, new User(senderId), new User(receiverId), content, timestamp);
+
+            // Add the message to the ViewModel and DB
+            viewModel.addMessage(newMessage);
+            updateChatDB(newMessage);
+
+            // Check if the sender is in the Arduino select list
+            Set<String> arduinoSelectList = viewModel.getSelectListArduino().getValue();
+            if (arduinoSelectList != null && arduinoSelectList.contains(senderId)) {
+                Log.d("MQTT", "Sender is in Arduino select list. Publishing to Arduino.");
+                mqttHelper.publishMessage("arduino" + "_" + senderId + "_" + content + "_" + timestamp);
+            } else {
+                Log.d("MQTT", "Sender is not in Arduino select list. Skipping Arduino publish.");
+            }
+        } else {
+            Log.d("MQTT", "Message is not for the current user.");
+        }
     }
+
+
 }
 
