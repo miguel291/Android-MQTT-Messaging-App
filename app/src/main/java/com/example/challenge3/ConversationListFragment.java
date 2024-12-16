@@ -14,6 +14,7 @@ import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -81,28 +82,30 @@ public class ConversationListFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        Log.d("ConversationListFragment", "onResume called");
         refreshContactedUsers();
     }
 
     private void refreshContactedUsers() {
+        Log.d("ConversationListFragment", "refreshContactedUsers called");
         User loggedUser = viewModel.getLoggedInUser();
 
         if (loggedUser == null) {
+            Log.e("ConversationListFragment", "Logged user is null");
             Toast.makeText(requireContext(), "No user is logged in. Please log in first.", Toast.LENGTH_SHORT).show();
             return;
         }
 
-        // Fetch the updated contacted users
-        viewModel.updateContactedUsers(loggedUser);
-        ArrayList<User> updatedContactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
+        contactedUsers = ((MainActivity) requireActivity()).getUserWithChat(loggedUser.getId());
 
-        if (updatedContactedUsers == null) {
-            updatedContactedUsers = new ArrayList<>();
+        if (contactedUsers == null) {
+            Log.w("ConversationListFragment", "Contacted users is null, initializing empty list");
+            contactedUsers = new ArrayList<>();
         }
 
-
-        viewModel.updateContactedUsers(loggedUser);
+        Log.d("ConversationListFragment", "Contacted users loaded: " + contactedUsers.size());
     }
+
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {

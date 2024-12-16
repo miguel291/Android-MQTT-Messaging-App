@@ -21,7 +21,10 @@ public class UsernameFragment extends Fragment {
 
     private SharedPreferences sharedPreferences;
     private EditText editTextId;
-    MainActivity activity = (MainActivity) requireActivity();
+
+    public UsernameFragment() {
+
+    }
 
     @Nullable
     @Override
@@ -48,6 +51,7 @@ public class UsernameFragment extends Fragment {
             if (isAlphanumeric(id)) {
 
                 User newUser = null;
+                MainActivity activity = (MainActivity) getActivity();
                 if(activity.userExists(id)) {
                     newUser = activity.getViewModel().getUserById(id);
                 }
@@ -79,6 +83,8 @@ public class UsernameFragment extends Fragment {
         SharedPreferences.Editor editor = sharedPreferences.edit();
         editor.putString("USER_ID", user.getId());
         editor.apply();
+        MainActivity activity = (MainActivity) getActivity();
+
         activity.getViewModel().setLoggedInUser(user);
         activity.addUserToDB(user);
     }

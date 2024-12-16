@@ -120,7 +120,6 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
         Toolbar myToolbar = findViewById(R.id.toolbar);
         setSupportActionBar(myToolbar);
 
@@ -135,6 +134,7 @@ public class MainActivity extends AppCompatActivity {
         SharedPreferences sharedPreferences = getSharedPreferences("AppPreferences", MODE_PRIVATE);
         userId = sharedPreferences.getString("USER_ID", null);
         Log.d("MainActivity", "USER_ID from SharedPreferences: " + userId);
+
 
         // get users arduino selected
         SharedPreferences arduinoSharedPreferences = getSharedPreferences("arduinoConf", MODE_PRIVATE);
@@ -310,6 +310,5 @@ public class MainActivity extends AppCompatActivity {
             updateChatDB(newMessage); // Save to DB
         }
     }
-
 }
 
