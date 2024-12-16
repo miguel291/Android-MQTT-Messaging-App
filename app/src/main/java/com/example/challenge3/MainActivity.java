@@ -31,7 +31,6 @@ public class MainActivity extends AppCompatActivity {
     MQTTHelper mqttHelper;
     private static final String CHATROOM_TOPIC = "chatroom1";
     String userId;
-    Message lastMessageReceived = null;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -317,7 +316,5 @@ public class MainActivity extends AppCompatActivity {
             updateChatDB(newMessage); // Save to DB
         }
     }
-
-
 }
 
