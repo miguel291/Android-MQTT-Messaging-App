@@ -1,11 +1,20 @@
 package com.example.challenge3;
 
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
+import android.content.Context;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
+import android.os.Build;
 import android.os.Bundle;
+import android.Manifest;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
+import androidx.core.app.NotificationCompat;
+import androidx.core.content.ContextCompat;
 import androidx.core.graphics.Insets;
 import androidx.core.view.ViewCompat;
 import androidx.core.view.WindowInsetsCompat;
@@ -107,6 +116,9 @@ public class MainActivity extends AppCompatActivity {
 
                     Log.d("MQTT", "Content: " + parts[2]);
                     Log.d("MQTT", "Timestamp: " + parts[3]);
+
+                    showNotification(newMessage);
+                    Log.d("Notification", "Notification function called");
                 }
                 else{
                     Log.d("MQTT", "Message is not for user");
@@ -163,6 +175,13 @@ public class MainActivity extends AppCompatActivity {
 
             viewModel.setLoggedInUser(loggedUser);
             Log.d("MainActivity", "Logged-in user: " + loggedUser.getId());
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS)
+                        != PackageManager.PERMISSION_GRANTED) {
+                    ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 101);
+                }
+            }
 
             /* This is the chat List*/
             viewModel.setContactedUsers(databaseFinal.getUserChats(userId));
@@ -344,6 +363,39 @@ public class MainActivity extends AppCompatActivity {
         } else {
             Log.d("MQTT", "Message is not for the current user.");
         }
+    }
+
+    private void showNotification(Message newMessage) {
+        // Create a NotificationManager instance
+        NotificationManager notificationManager = (NotificationManager) this
+                .getSystemService(Context.NOTIFICATION_SERVICE);
+
+        String channelId = "new_message_channel";
+        String channelName = "New Message Notifications";
+
+        // Check if the channel exists and create it if necessary
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            NotificationChannel channel = new NotificationChannel(
+                    channelId,
+                    channelName,
+                    NotificationManager.IMPORTANCE_HIGH
+            );
+            channel.setDescription("Notifications for new messages.");
+            notificationManager.createNotificationChannel(channel);
+        }
+
+        // Create the notification content
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(this, channelId)
+                .setSmallIcon(R.drawable.icons8_message_100) // Replace with your app's notification icon
+                .setContentTitle("New Message from: " + newMessage.getSender().getId())
+                .setContentText(newMessage.getContent())
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true); // Dismiss the notification when clicked
+
+        Log.d("Notification", "Notification created");
+        // Notify using a unique ID (e.g., message ID)
+        notificationManager.notify((int) System.currentTimeMillis(), builder.build());
+        Log.d("Notification", "Notification sent");
     }
 
 
